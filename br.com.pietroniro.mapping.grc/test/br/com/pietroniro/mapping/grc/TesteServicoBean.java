@@ -14,7 +14,8 @@ public class TesteServicoBean {
 				String.valueOf(Estados.SP.getCodigo()),
 				String.valueOf(Estados.RJ.getCodigo()) };
 		
-		cut = new ServicoBean("autorizador", "servico", "versao", "ambiente", estados, "url", "soapAction");
+		cut = ServicoFactory.getServico(new ServicoBeanFactory(		
+				"autorizador", "servico", "versao", "ambiente", estados, "url", "soapAction"));
 	}
 
 	@Test

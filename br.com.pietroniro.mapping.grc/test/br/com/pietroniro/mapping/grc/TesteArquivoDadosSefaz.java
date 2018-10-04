@@ -14,19 +14,20 @@ public class TesteArquivoDadosSefaz {
 	
 	@Before
 	public void setUp() throws Exception {
-		cut = new ArquivoDadosSefaz();
+		cut = DadosSefazFactory.getDadosSefaz(new ArquivoDadosSefazFactory("sefaz.csv"));
 	}
 
 	@Test
 	public void testArquivoNaoExiste() {
-		this.servicos = cut.readData("notFound.csv");
+		servicos = cut.readData("notFound.csv");
 		
-		assertTrue(this.servicos.isEmpty());
+		assertTrue(servicos.isEmpty());
 	}
 	
 
 	@Test
 	public void testArquivoNaoExisteServicoNaoExiste() {
+		cut.readData("notFound.csv");
 		Servico serv = cut.procuraServico("estado", "servico", "versao", "ambiente");
 		
 		assertNull(serv);
@@ -34,7 +35,6 @@ public class TesteArquivoDadosSefaz {
 	
 	@Test
 	public void testArquivoExisteServicoNaoExiste() {
-		cut.readData("sefaz.csv");
 		Servico serv = cut.procuraServico("estado", "servico", "versao", "ambiente");
 		
 		assertNull(serv);
@@ -42,7 +42,6 @@ public class TesteArquivoDadosSefaz {
 	
 	@Test
 	public void testArquivoExisteServicoExiste() {
-		cut.readData("sefaz.csv");
 		Servico serv = cut.procuraServico("Estados", "Servico", "Versao", "Ambiente");
 		
 		assertNotNull(serv);

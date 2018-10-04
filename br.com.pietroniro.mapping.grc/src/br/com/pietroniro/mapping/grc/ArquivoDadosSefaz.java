@@ -12,6 +12,11 @@ public class ArquivoDadosSefaz implements DadosSefaz {
 	private List<Servico> servicos = new ArrayList<Servico>();
 	private Logger logger;
 	
+	public ArquivoDadosSefaz(String uri) {
+		this();
+		servicos = this.readData(uri);
+	}
+	
 	public ArquivoDadosSefaz() {
 		logger = Logger.getLogger(ArquivoDadosSefaz.class.getName());
 	}
