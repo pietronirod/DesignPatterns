@@ -1,15 +1,21 @@
 package br.com.pietroniro.mapping.grc;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ArquivoDadosSefaz implements DadosSefaz {
 
 	private List<Servico> servicos = new ArrayList<Servico>();
-
+	private Logger logger;
+	
+	public ArquivoDadosSefaz() {
+		logger = Logger.getLogger(ArquivoDadosSefaz.class.getName());
+	}
+	
 	@Override
 	public Servico procuraServico(String estado, String servico, String versao, String ambiente) {
 		Servico ret = null;
@@ -27,6 +33,7 @@ public class ArquivoDadosSefaz implements DadosSefaz {
 
 	@Override
 	public List<Servico> readData(String uri) {
+		this.servicos.clear();
 		this.readResource(uri);
 		return this.servicos;
 	}
@@ -44,16 +51,22 @@ public class ArquivoDadosSefaz implements DadosSefaz {
 					servicos.add(serv);
 				}
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (Exception e) {
+			logger.log(Level.SEVERE, "Erro ao acessar arquivo "+uri);
 		}
 	}
 	
 	private Boolean isRegistroValido(String[] registro) {
 		Boolean ret = false;
+		String msg = "Erro ao processar registro: ";
 		
 		if (registro.length == 7) {
 			ret = true;
+		} else {
+			for (String reg: registro) {
+				msg = msg + "** " + reg + " ";
+			}
+			logger.log(Level.WARNING, msg);
 		}
 		return ret;
 	}

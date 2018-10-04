@@ -10,21 +10,39 @@ import org.junit.Test;
 public class TesteArquivoDadosSefaz {
 	
 	private DadosSefaz cut;
+	private List<Servico> servicos;
 	
 	@Before
 	public void setUp() throws Exception {
 		cut = new ArquivoDadosSefaz();
-		this.testReadData();
 	}
 
 	@Test
-	public void testReadData() {
-		@SuppressWarnings("unused")
-		List<Servico> servico = cut.readData("sefaz.csv");
+	public void testArquivoNaoExiste() {
+		this.servicos = cut.readData("notFound.csv");
+		
+		assertTrue(this.servicos.isEmpty());
+	}
+	
+
+	@Test
+	public void testArquivoNaoExisteServicoNaoExiste() {
+		Servico serv = cut.procuraServico("estado", "servico", "versao", "ambiente");
+		
+		assertNull(serv);
 	}
 	
 	@Test
-	public void testProcuraServico() {
+	public void testArquivoExisteServicoNaoExiste() {
+		cut.readData("sefaz.csv");
+		Servico serv = cut.procuraServico("estado", "servico", "versao", "ambiente");
+		
+		assertNull(serv);
+	}
+	
+	@Test
+	public void testArquivoExisteServicoExiste() {
+		cut.readData("sefaz.csv");
 		Servico serv = cut.procuraServico("Estados", "Servico", "Versao", "Ambiente");
 		
 		assertNotNull(serv);
