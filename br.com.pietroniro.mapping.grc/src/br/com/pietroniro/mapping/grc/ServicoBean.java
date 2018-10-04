@@ -117,6 +117,13 @@ public class ServicoBean implements Servico {
 	public void setSoapAction(String soapAction) {
 		this.soapAction = soapAction;
 	}
-	
-	
+	@Override
+	public boolean existeEstado(String estado) {
+		for (String est: this.estados) {
+			if (est.equals(estado)) {
+				return true;
+			}
+		}
+		return false;
+	}
 }

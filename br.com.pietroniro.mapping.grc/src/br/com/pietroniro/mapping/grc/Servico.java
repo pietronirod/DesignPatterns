@@ -1,7 +1,6 @@
 package br.com.pietroniro.mapping.grc;
 
 public interface Servico {
-
 	String getAutorizador();
 
 	void setAutorizador(String autorizador);
@@ -29,5 +28,7 @@ public interface Servico {
 	String getSoapAction();
 
 	void setSoapAction(String soapAction);
+
+	boolean existeEstado(String estado);
 
 }
