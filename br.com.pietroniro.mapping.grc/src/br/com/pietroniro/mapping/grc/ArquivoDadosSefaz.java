@@ -82,14 +82,14 @@ public class ArquivoDadosSefaz implements DadosSefaz {
 		
 		separado = servico.split(Separador.CAMPOS.getSeparador());
 		if (isRegistroValido(separado)) {
-			ret = new ServicoBean(
+			ret = ServicoFactory.getServico(new ServicoBeanFactory(
 					separado[0], 
 					separado[1], 
 					separado[2],
 					separado[3],
 					separado[4].split(Separador.ESTADOS.getSeparador()),
 					separado[5],
-					separado[6]);			
+					separado[6]));			
 		} else {
 			//throw new Exception("Arquivo de dados de serviços da SEFAZ inválido!");
 		}
