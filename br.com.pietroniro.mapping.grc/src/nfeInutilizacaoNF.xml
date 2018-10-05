@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<n0:nfeInutilizacaoNF xmlns:n0="http://sap.com/xi/NFE/009" xmlns:n1="http://www.portalfiscal.inf.br/nfe" xmlns:n2="http://www.w3.org/2000/09/xmldsig#">
+	<n0:cUF>35</n0:cUF>
+	<n0:tpEmis>6</n0:tpEmis>
+	<n0:tpAmb>2</n0:tpAmb>
+	<n0:CNPJ>61365284017007</n0:CNPJ>
+	<n0:mod>55</n0:mod>
+	<n0:objGuid>000D3A009E051EE8ADD5BD09D1228EB5</n0:objGuid>
+	<n0:nfeDadosMsg>
+		<n1:inutNFe versao="4.00" xmlns="http://www.portalfiscal.inf.br/nfe">
+			<infInut Id="ID35186136528401700755000000000651000000651">
+				<tpAmb>2</tpAmb>
+				<xServ>INUTILIZAR</xServ>
+				<cUF>35</cUF>
+				<ano>18</ano>
+				<CNPJ>61365284017007</CNPJ>
+				<mod>55</mod>
+				<serie>0</serie>
+				<nNFIni>651</nNFIni>
+				<nNFFin>651</nNFFin>
+				<xJust>Cancelamento de Vendas antes da saida do produto</xJust>
+			</infInut>
+			<Signature xmlns="http://www.w3.org/2000/09/xmldsig#">
+				<SignedInfo>
+					<CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+					<SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>
+					<Reference URI="#ID35186136528401700755000000000651000000651">
+						<Transforms>
+							<Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+							<Transform Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+						</Transforms>
+						<DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
+						<DigestValue>OHFHNAHYW78slfORFKjCwGY7jls=</DigestValue>
+					</Reference>
+				</SignedInfo>
+				<SignatureValue>T+nVgimlgbWOYr+3AMfhMwsmQJeGNKwYkPtWpIoxHi+DTZhgnzKLPko1fWggytI03YyvNjcZLjq7&#xA;UkvuEJGgD0DXsQ2iL07ckRWuqzzUEaPdo2wVY5akWqp5sjJT8fmWE18elqLlfqMHRcWwDCoXc2E8&#xA;CC4j2RKpIO/BIYaA1zYYFNWzv1l0qGK3i23yc1f4XiLhHsNF4kmyduxDhPgGx1JnV3rv4+P7r4d0&#xA;jdJ2mmPxA4TRJvMYXshBOnRXwqexcVwh4ihp8o5p2lk50iMS9gG58W4mFnXN7okOH1AvnTwh3+JL&#xA;DsvXCYg3hvO4OQAZAR5jNrICLe0zwFBAg8lRkA==</SignatureValue>
+				<KeyInfo>
+					<X509Data>
+						<X509Certificate>MIIH7jCCBdagAwIBAgIQUORV1SOwIKA7eTTQnhrmBjANBgkqhkiG9w0BAQsFADB4MQswCQYDVQQG&#xA;EwJCUjETMBEGA1UEChMKSUNQLUJyYXNpbDE2MDQGA1UECxMtU2VjcmV0YXJpYSBkYSBSZWNlaXRh&#xA;IEZlZGVyYWwgZG8gQnJhc2lsIC0gUkZCMRwwGgYDVQQDExNBQyBDZXJ0aXNpZ24gUkZCIEc1MB4X&#xA;DTE4MDUxODE3NDQyMFoXDTE5MDUxODE3NDQyMFowgeYxCzAJBgNVBAYTAkJSMRMwEQYDVQQKDApJ&#xA;Q1AtQnJhc2lsMQswCQYDVQQIDAJTUDESMBAGA1UEBwwJU2FvIFBhdWxvMTYwNAYDVQQLDC1TZWNy&#xA;ZXRhcmlhIGRhIFJlY2VpdGEgRmVkZXJhbCBkbyBCcmFzaWwgLSBSRkIxFjAUBgNVBAsMDVJGQiBl&#xA;LUNOUEogQTExIDAeBgNVBAsMF0F1dGVudGljYWRvIHBvciBBUiBIYXNhMS8wLQYDVQQDDCZTQVJB&#xA;SVZBIEUgU0lDSUxJQU5PIFMgQTo2MTM2NTI4NDAwMDEwNDCCASIwDQYJKoZIhvcNAQEBBQADggEP&#xA;ADCCAQoCggEBAIrTX3Uz6TZyFHw4rL1wQF/UVubF0RnjXi66CKNbpKsMz4Ghm72TQPmhRH06yEyY&#xA;NJYyXCMrI3x76ILwImsudb4OuxXPDK9OLrzEX81lfJ58FhreFJprYjqHgMj8UrifTlbaU92IPoiJ&#xA;jYgwBtuec1Lelj8qP6Q4R27vwJLLNaLDVhSRRwkgBQWS2OzIw9ipOO1CK+sTQS8UeCm2qdsX+cmP&#xA;s47s+iaJOIxMdiMJo/0GiRY3h3U36uo16ZY59Nio7mF/YV7Tp06/YpnkbHEFyelG4q6dvyFpbwbJ&#xA;CGnqoGViAFQykuplFKWqAJqJesQYFLtWrK5IEHCURQ6/gW1ncm8CAwEAAaOCAwMwggL/MIGyBgNV&#xA;HREEgaowgaegOAYFYEwBAwSgLwQtMDcwMTE5ODQzMzA1MTUyNTgzOTAwMDAwMDAwMDAwMDAwMDAw&#xA;MDAwMDAwMDAwoB0GBWBMAQMCoBQEEkpPUkdFIFNBUkFJVkEgTkVUT6AZBgVgTAEDA6AQBA42MTM2&#xA;NTI4NDAwMDEwNKAXBgVgTAEDB6AOBAwwMDAwMDAwMDAwMDCBGGNhbHRoYWxlckBzYXJhaXZhLmNv&#xA;bS5icjAJBgNVHRMEAjAAMB8GA1UdIwQYMBaAFFN9f52+0WHQILran+OJpxNzWM1CMH8GA1UdIAR4&#xA;MHYwdAYGYEwBAgEMMGowaAYIKwYBBQUHAgEWXGh0dHA6Ly9pY3AtYnJhc2lsLmNlcnRpc2lnbi5j&#xA;b20uYnIvcmVwb3NpdG9yaW8vZHBjL0FDX0NlcnRpc2lnbl9SRkIvRFBDX0FDX0NlcnRpc2lnbl9S&#xA;RkIucGRmMIG8BgNVHR8EgbQwgbEwV6BVoFOGUWh0dHA6Ly9pY3AtYnJhc2lsLmNlcnRpc2lnbi5j&#xA;b20uYnIvcmVwb3NpdG9yaW8vbGNyL0FDQ2VydGlzaWduUkZCRzUvTGF0ZXN0Q1JMLmNybDBWoFSg&#xA;UoZQaHR0cDovL2ljcC1icmFzaWwub3V0cmFsY3IuY29tLmJyL3JlcG9zaXRvcmlvL2xjci9BQ0Nl&#xA;cnRpc2lnblJGQkc1L0xhdGVzdENSTC5jcmwwDgYDVR0PAQH/BAQDAgXgMB0GA1UdJQQWMBQGCCsG&#xA;AQUFBwMCBggrBgEFBQcDBDCBrAYIKwYBBQUHAQEEgZ8wgZwwXwYIKwYBBQUHMAKGU2h0dHA6Ly9p&#xA;Y3AtYnJhc2lsLmNlcnRpc2lnbi5jb20uYnIvcmVwb3NpdG9yaW8vY2VydGlmaWNhZG9zL0FDX0Nl&#xA;cnRpc2lnbl9SRkJfRzUucDdjMDkGCCsGAQUFBzABhi1odHRwOi8vb2NzcC1hYy1jZXJ0aXNpZ24t&#xA;cmZiLmNlcnRpc2lnbi5jb20uYnIwDQYJKoZIhvcNAQELBQADggIBAKE1cXCKkbOGTHveFn3V45VQ&#xA;kYPCXWI8R4f1HkbUkxzwBY3ytr0uvSBXgLu5pHgNMTjDgy6mDflAnhJKLFDSamHZ71XQE8K207Sv&#xA;5P8pISFbRahz+M3ySbYBxnuwKRox2zeGKifo1FfpsyimdNCS1jYjd819f60J/8PHDcMV8Q058In3&#xA;xQO2VTWizxrnu93A90cLrM0xNJZtVZEF6x3wxqkdHPokrLizaOLhLGLbQGgDtYuO8i9TvMq7yHuY&#xA;D8B9WCzmAdHJwSh50rGCXK9zzFjj+ddjrUpXtWOHI6ROyjGxO+sjvGr/yvEfgYeNUGA1MKRx1jSN&#xA;dOvYlf6Ljps2BHc5nedXq1fc6h4T3JiJzXznIJ5wcOgrkyvvnfWC9waT0oWtD/XE3+ssdp+aYd7u&#xA;y60Ut1EF0OdHypU+GBKfWYmP3WmB8bBLC6OTpVxEz5C0bVBCuWFS+oSwwZb4ukpZH0j+Qz6R7elt&#xA;KZ7WriA599JqmlY382qUoTHorz4AyfX9R1uBLbZiZSeJgomMclOzJ/VR++nY+L5SUnDTrw+pb4Ez&#xA;gGsQq52ZZzygVR3tdcAteyu5DC4BKe6MEhLBys6KbYgQKG4uG2QulWw6vqZ0VXV0ADROoDKRBopk&#xA;GVT+fSBJJTuHdEo34E70IioV5bL9jUNDPkIpbHk1C3+qka7oJu8Y</X509Certificate>
+					</X509Data>
+				</KeyInfo>
+			</Signature>
+		</n1:inutNFe>
+	</n0:nfeDadosMsg>
+</n0:nfeInutilizacaoNF>

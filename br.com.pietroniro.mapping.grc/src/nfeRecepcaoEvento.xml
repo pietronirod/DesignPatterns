@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ns0:nfeRecepcaoEvento xmlns:ns0="http://sap.com/xi/NFE/009">
+   <ns0:cUF/>
+   <ns0:tpEmis/>
+   <ns0:tpAmb/>
+   <ns0:CNPJ/>
+   <ns0:mod/>
+   <ns0:objGuid/>
+   <ns0:nfeDadosMsg>
+      <ns1:envEvento versao="" xmlns:ns1="http://www.portalfiscal.inf.br/nfe">
+         <ns1:idLote/>
+         <ns1:evento versao="">
+            <ns1:infEvento Id="">
+               <ns1:cOrgao/>
+               <ns1:tpAmb/>
+               <ns1:CNPJ/>
+               <ns1:CPF/>
+               <ns1:chNFe/>
+               <ns1:dhEvento/>
+               <ns1:tpEvento/>
+               <ns1:nSeqEvento/>
+               <ns1:verEvento/>
+            </ns1:infEvento>
+            <ns2:Signature Id="" xmlns:ns2="http://www.w3.org/2000/09/xmldsig#">
+               <ns2:SignedInfo Id="">
+                  <ns2:CanonicalizationMethod Algorithm=""/>
+                  <ns2:SignatureMethod Algorithm=""/>
+                  <ns2:Reference Id="" URI="" Type="">
+                     <ns2:Transforms>
+                        <ns2:Transform Algorithm="">
+                           <ns2:XPath/>
+                        </ns2:Transform>
+                     </ns2:Transforms>
+                     <ns2:DigestMethod Algorithm=""/>
+                     <ns2:DigestValue/>
+                  </ns2:Reference>
+               </ns2:SignedInfo>
+               <ns2:SignatureValue Id=""/>
+               <ns2:KeyInfo Id="">
+                  <ns2:X509Data>
+                     <ns2:X509Certificate/>
+                  </ns2:X509Data>
+               </ns2:KeyInfo>
+            </ns2:Signature>
+         </ns1:evento>
+      </ns1:envEvento>
+   </ns0:nfeDadosMsg>
+</ns0:nfeRecepcaoEvento>

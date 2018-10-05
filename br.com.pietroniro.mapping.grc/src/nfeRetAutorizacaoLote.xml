@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<n0:nfeRetAutorizacaoLote xmlns:n0="http://sap.com/xi/NFE/009" xmlns:n1="http://www.portalfiscal.inf.br/nfe">
+	<n0:cUF>35</n0:cUF>
+	<n0:tpEmis>6</n0:tpEmis>
+	<n0:tpAmb>2</n0:tpAmb>
+	<n0:CNPJ>61365284017007</n0:CNPJ>
+	<n0:mod>55</n0:mod>
+	<n0:objGuid>000D3A009E051EE8ADD5BCC61EB2AEA4</n0:objGuid>
+	<n0:nfeDadosMsg>
+		<n1:consReciNFe versao="4.00">
+			<n1:tpAmb>2</n1:tpAmb>
+			<n1:nRec>356000014574674</n1:nRec>
+		</n1:consReciNFe>
+	</n0:nfeDadosMsg>
+</n0:nfeRetAutorizacaoLote>

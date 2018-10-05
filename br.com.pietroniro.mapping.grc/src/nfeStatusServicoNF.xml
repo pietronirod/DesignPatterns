@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<n0:nfeStatusServicoNF xmlns:n0="http://sap.com/xi/NFE/009">
+	<n0:cUF>13</n0:cUF>
+	<n0:tpEmis>1</n0:tpEmis>
+	<n0:tpAmb>2</n0:tpAmb>
+	<n0:mod/>
+	<n0:nfeDadosMsg>
+		<n1:consStatServ versao="4.00" xmlns:n1="http://www.portalfiscal.inf.br/nfe">
+			<n1:tpAmb>2</n1:tpAmb>
+			<n1:cUF>13</n1:cUF>
+			<n1:xServ>STATUS</n1:xServ>
+		</n1:consStatServ>
+	</n0:nfeDadosMsg>
+</n0:nfeStatusServicoNF>

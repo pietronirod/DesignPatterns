@@ -1,0 +1,677 @@
+<?xml version="1.0" encoding="utf-8"?>
+<n0:nfeAutorizacaoLote xmlns:n0="http://sap.com/xi/NFE/009" xmlns:n1="http://www.portalfiscal.inf.br/nfe" xmlns:n2="http://www.w3.org/2000/09/xmldsig#">
+	<n0:cUF>35</n0:cUF>
+	<n0:tpEmis>6</n0:tpEmis>
+	<n0:tpAmb>2</n0:tpAmb>
+	<n0:CNPJ>61365284017007</n0:CNPJ>
+	<n0:mod>55</n0:mod>
+	<n0:objGuid>000D3A009E051EE8ADD5BCC61EB2AEA4</n0:objGuid>
+	<n0:indSinc>0</n0:indSinc>
+	<n0:nfeDadosMsg>
+		<n1:enviNFe versao="4.00">
+			<n1:idLote>000000000002243</n1:idLote>
+			<n1:indSinc>0</n1:indSinc>
+			<n1:NFe xmlns="http://www.portalfiscal.inf.br/nfe">
+				<infNFe versao="4.00" Id="NFe35180961365284017007550000000006486329320022">
+					<ide>
+						<cUF>35</cUF>
+						<cNF>32932002</cNF>
+						<natOp>Venda de mercadoria adquirida ou recebida de terce</natOp>
+						<mod>55</mod>
+						<serie>0</serie>
+						<nNF>648</nNF>
+						<dhEmi>2018-09-10T14:04:14-03:00</dhEmi>
+						<tpNF>1</tpNF>
+						<idDest>1</idDest>
+						<cMunFG>3509205</cMunFG>
+						<tpImp>2</tpImp>
+						<tpEmis>6</tpEmis>
+						<cDV>2</cDV>
+						<tpAmb>2</tpAmb>
+						<finNFe>1</finNFe>
+						<indFinal>1</indFinal>
+						<indPres>9</indPres>
+						<procEmi>0</procEmi>
+						<verProc>4</verProc>
+						<dhCont>2018-08-30T10:02:43-03:00</dhCont>
+						<xJust>SITE DA SEFAZ ESTÁ INDISPONÍVEL</xJust>
+					</ide>
+					<emit>
+						<CNPJ>61365284017007</CNPJ>
+						<xNome>P630 Ponto Com Cajamar SP Saraiva e Siciliano S.A</xNome>
+						<xFant>Ponto Com Cajamar SP</xFant>
+						<enderEmit>
+							<xLgr>Av. Marginal Ribeirão dos Cristais</xLgr>
+							<nro>160</nro>
+							<xBairro>Jordanésia</xBairro>
+							<cMun>3509205</cMun>
+							<xMun>Cajamar</xMun>
+							<UF>SP</UF>
+							<CEP>07750000</CEP>
+							<xPais>Brasil</xPais>
+						</enderEmit>
+						<IE>241049966111</IE>
+						<IM>13310</IM>
+						<CRT>3</CRT>
+					</emit>
+					<dest>
+						<CPF>69742555354</CPF>
+						<xNome>NF-E EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL</xNome>
+						<enderDest>
+							<xLgr>Rua Attilio Regulo Arena</xLgr>
+							<nro>210</nro>
+							<xBairro>Campo Belo</xBairro>
+							<cMun>3550308</cMun>
+							<xMun>São Paulo</xMun>
+							<UF>SP</UF>
+							<CEP>04624001</CEP>
+							<cPais>1058</cPais>
+							<xPais>BR</xPais>
+							<fone>1182411234</fone>
+						</enderDest>
+						<indIEDest>9</indIEDest>
+					</dest>
+					<det nItem="1">
+						<prod>
+							<cProd>000000000000000107</cProd>
+							<cEAN>9781616559458</cEAN>
+							<xProd>Fight Club 2</xProd>
+							<NCM>49059100</NCM>
+							<CEST>1902500</CEST>
+							<indEscala>S</indEscala>
+							<CFOP>5102</CFOP>
+							<uCom>PEÇ</uCom>
+							<qCom>1.0000</qCom>
+							<vUnCom>100.0000000000</vUnCom>
+							<vProd>100.00</vProd>
+							<cEANTrib>9781616559458</cEANTrib>
+							<uTrib>UN</uTrib>
+							<qTrib>1.0000</qTrib>
+							<vUnTrib>100.0000000000</vUnTrib>
+							<vFrete>5.00</vFrete>
+							<indTot>1</indTot>
+							<xPed>122002</xPed>
+						</prod>
+						<imposto>
+							<ICMS>
+								<ICMS40>
+									<orig>0</orig>
+									<CST>41</CST>
+								</ICMS40>
+							</ICMS>
+							<IPI>
+								<cEnq>999</cEnq>
+								<IPINT>
+									<CST>53</CST>
+								</IPINT>
+							</IPI>
+							<PIS>
+								<PISNT>
+									<CST>06</CST>
+								</PISNT>
+							</PIS>
+							<COFINS>
+								<COFINSNT>
+									<CST>06</CST>
+								</COFINSNT>
+							</COFINS>
+						</imposto>
+					</det>
+					<total>
+						<ICMSTot>
+							<vBC>0.00</vBC>
+							<vICMS>0.00</vICMS>
+							<vICMSDeson>0.00</vICMSDeson>
+							<vFCP>0.00</vFCP>
+							<vBCST>0.00</vBCST>
+							<vST>0.00</vST>
+							<vFCPST>0.00</vFCPST>
+							<vFCPSTRet>0.00</vFCPSTRet>
+							<vProd>100.00</vProd>
+							<vFrete>5.00</vFrete>
+							<vSeg>0.00</vSeg>
+							<vDesc>0.00</vDesc>
+							<vII>0.00</vII>
+							<vIPI>0.00</vIPI>
+							<vIPIDevol>0.00</vIPIDevol>
+							<vPIS>0.00</vPIS>
+							<vCOFINS>0.00</vCOFINS>
+							<vOutro>0.00</vOutro>
+							<vNF>105.00</vNF>
+						</ICMSTot>
+					</total>
+					<transp>
+						<modFrete>0</modFrete>
+					</transp>
+					<cobr>
+						<fat>
+							<nFat>0000003616</nFat>
+							<vOrig>105.00</vOrig>
+							<vDesc>0.00</vDesc>
+							<vLiq>105.00</vLiq>
+						</fat>
+						<dup>
+							<nDup>001</nDup>
+							<dVenc>2018-10-10</dVenc>
+							<vDup>17.49</vDup>
+						</dup>
+						<dup>
+							<nDup>002</nDup>
+							<dVenc>2018-11-09</dVenc>
+							<vDup>17.49</vDup>
+						</dup>
+						<dup>
+							<nDup>003</nDup>
+							<dVenc>2018-12-09</dVenc>
+							<vDup>17.50</vDup>
+						</dup>
+						<dup>
+							<nDup>004</nDup>
+							<dVenc>2019-01-08</dVenc>
+							<vDup>17.50</vDup>
+						</dup>
+						<dup>
+							<nDup>005</nDup>
+							<dVenc>2019-02-07</dVenc>
+							<vDup>17.50</vDup>
+						</dup>
+						<dup>
+							<nDup>006</nDup>
+							<dVenc>2019-03-09</dVenc>
+							<vDup>17.50</vDup>
+						</dup>
+					</cobr>
+					<pag>
+						<detPag>
+							<tPag>90</tPag>
+							<vPag>0.00</vPag>
+						</detPag>
+					</pag>
+					<infAdic>
+						<infCpl>F.Pagto: AR - Cartao de credito; Venda a Prazo 6 parcelas | Encomenda : 122002</infCpl>
+					</infAdic>
+				</infNFe>
+				<Signature xmlns="http://www.w3.org/2000/09/xmldsig#">
+					<SignedInfo>
+						<CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+						<SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>
+						<Reference URI="#NFe35180961365284017007550000000006486329320022">
+							<Transforms>
+								<Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+								<Transform Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+							</Transforms>
+							<DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
+							<DigestValue>DGrWrCRYTvQxC+irO7EWlZMi0hc=</DigestValue>
+						</Reference>
+					</SignedInfo>
+					<SignatureValue>SFhe/n0EaY+dHVtjWzKuAGcV3Z3/lYzUep8E6kcXmUUKg0wyHiUNzM5teK3VsrmSZKsUQY1825WL&#xA;70f8DDd4b6pQX+madWKhbQFdvDla/ELaqn+ipm3CSjnUIT7/QmBf43hvBECrSXw6YmBQh96eOMc2&#xA;WLTln010thkVVNhFV8OlinR0YAIUwsbchgL8JJRz0Bv5vtHSRTBjtxpRmn/uZbMbbNXrxJjeQnux&#xA;ztfVVozEvPpJhLnYPMjX+wPiN8TNShk6Zf3+JwHpZJFp+SY6conp+LmJQblpkOfhValzawG4cWNj&#xA;vKZo0Z47PpgRqHERwIW74P2U/dAvV/CP03VZng==</SignatureValue>
+					<KeyInfo>
+						<X509Data>
+							<X509Certificate>MIIH7jCCBdagAwIBAgIQUORV1SOwIKA7eTTQnhrmBjANBgkqhkiG9w0BAQsFADB4MQswCQYDVQQG&#xA;EwJCUjETMBEGA1UEChMKSUNQLUJyYXNpbDE2MDQGA1UECxMtU2VjcmV0YXJpYSBkYSBSZWNlaXRh&#xA;IEZlZGVyYWwgZG8gQnJhc2lsIC0gUkZCMRwwGgYDVQQDExNBQyBDZXJ0aXNpZ24gUkZCIEc1MB4X&#xA;DTE4MDUxODE3NDQyMFoXDTE5MDUxODE3NDQyMFowgeYxCzAJBgNVBAYTAkJSMRMwEQYDVQQKDApJ&#xA;Q1AtQnJhc2lsMQswCQYDVQQIDAJTUDESMBAGA1UEBwwJU2FvIFBhdWxvMTYwNAYDVQQLDC1TZWNy&#xA;ZXRhcmlhIGRhIFJlY2VpdGEgRmVkZXJhbCBkbyBCcmFzaWwgLSBSRkIxFjAUBgNVBAsMDVJGQiBl&#xA;LUNOUEogQTExIDAeBgNVBAsMF0F1dGVudGljYWRvIHBvciBBUiBIYXNhMS8wLQYDVQQDDCZTQVJB&#xA;SVZBIEUgU0lDSUxJQU5PIFMgQTo2MTM2NTI4NDAwMDEwNDCCASIwDQYJKoZIhvcNAQEBBQADggEP&#xA;ADCCAQoCggEBAIrTX3Uz6TZyFHw4rL1wQF/UVubF0RnjXi66CKNbpKsMz4Ghm72TQPmhRH06yEyY&#xA;NJYyXCMrI3x76ILwImsudb4OuxXPDK9OLrzEX81lfJ58FhreFJprYjqHgMj8UrifTlbaU92IPoiJ&#xA;jYgwBtuec1Lelj8qP6Q4R27vwJLLNaLDVhSRRwkgBQWS2OzIw9ipOO1CK+sTQS8UeCm2qdsX+cmP&#xA;s47s+iaJOIxMdiMJo/0GiRY3h3U36uo16ZY59Nio7mF/YV7Tp06/YpnkbHEFyelG4q6dvyFpbwbJ&#xA;CGnqoGViAFQykuplFKWqAJqJesQYFLtWrK5IEHCURQ6/gW1ncm8CAwEAAaOCAwMwggL/MIGyBgNV&#xA;HREEgaowgaegOAYFYEwBAwSgLwQtMDcwMTE5ODQzMzA1MTUyNTgzOTAwMDAwMDAwMDAwMDAwMDAw&#xA;MDAwMDAwMDAwoB0GBWBMAQMCoBQEEkpPUkdFIFNBUkFJVkEgTkVUT6AZBgVgTAEDA6AQBA42MTM2&#xA;NTI4NDAwMDEwNKAXBgVgTAEDB6AOBAwwMDAwMDAwMDAwMDCBGGNhbHRoYWxlckBzYXJhaXZhLmNv&#xA;bS5icjAJBgNVHRMEAjAAMB8GA1UdIwQYMBaAFFN9f52+0WHQILran+OJpxNzWM1CMH8GA1UdIAR4&#xA;MHYwdAYGYEwBAgEMMGowaAYIKwYBBQUHAgEWXGh0dHA6Ly9pY3AtYnJhc2lsLmNlcnRpc2lnbi5j&#xA;b20uYnIvcmVwb3NpdG9yaW8vZHBjL0FDX0NlcnRpc2lnbl9SRkIvRFBDX0FDX0NlcnRpc2lnbl9S&#xA;RkIucGRmMIG8BgNVHR8EgbQwgbEwV6BVoFOGUWh0dHA6Ly9pY3AtYnJhc2lsLmNlcnRpc2lnbi5j&#xA;b20uYnIvcmVwb3NpdG9yaW8vbGNyL0FDQ2VydGlzaWduUkZCRzUvTGF0ZXN0Q1JMLmNybDBWoFSg&#xA;UoZQaHR0cDovL2ljcC1icmFzaWwub3V0cmFsY3IuY29tLmJyL3JlcG9zaXRvcmlvL2xjci9BQ0Nl&#xA;cnRpc2lnblJGQkc1L0xhdGVzdENSTC5jcmwwDgYDVR0PAQH/BAQDAgXgMB0GA1UdJQQWMBQGCCsG&#xA;AQUFBwMCBggrBgEFBQcDBDCBrAYIKwYBBQUHAQEEgZ8wgZwwXwYIKwYBBQUHMAKGU2h0dHA6Ly9p&#xA;Y3AtYnJhc2lsLmNlcnRpc2lnbi5jb20uYnIvcmVwb3NpdG9yaW8vY2VydGlmaWNhZG9zL0FDX0Nl&#xA;cnRpc2lnbl9SRkJfRzUucDdjMDkGCCsGAQUFBzABhi1odHRwOi8vb2NzcC1hYy1jZXJ0aXNpZ24t&#xA;cmZiLmNlcnRpc2lnbi5jb20uYnIwDQYJKoZIhvcNAQELBQADggIBAKE1cXCKkbOGTHveFn3V45VQ&#xA;kYPCXWI8R4f1HkbUkxzwBY3ytr0uvSBXgLu5pHgNMTjDgy6mDflAnhJKLFDSamHZ71XQE8K207Sv&#xA;5P8pISFbRahz+M3ySbYBxnuwKRox2zeGKifo1FfpsyimdNCS1jYjd819f60J/8PHDcMV8Q058In3&#xA;xQO2VTWizxrnu93A90cLrM0xNJZtVZEF6x3wxqkdHPokrLizaOLhLGLbQGgDtYuO8i9TvMq7yHuY&#xA;D8B9WCzmAdHJwSh50rGCXK9zzFjj+ddjrUpXtWOHI6ROyjGxO+sjvGr/yvEfgYeNUGA1MKRx1jSN&#xA;dOvYlf6Ljps2BHc5nedXq1fc6h4T3JiJzXznIJ5wcOgrkyvvnfWC9waT0oWtD/XE3+ssdp+aYd7u&#xA;y60Ut1EF0OdHypU+GBKfWYmP3WmB8bBLC6OTpVxEz5C0bVBCuWFS+oSwwZb4ukpZH0j+Qz6R7elt&#xA;KZ7WriA599JqmlY382qUoTHorz4AyfX9R1uBLbZiZSeJgomMclOzJ/VR++nY+L5SUnDTrw+pb4Ez&#xA;gGsQq52ZZzygVR3tdcAteyu5DC4BKe6MEhLBys6KbYgQKG4uG2QulWw6vqZ0VXV0ADROoDKRBopk&#xA;GVT+fSBJJTuHdEo34E70IioV5bL9jUNDPkIpbHk1C3+qka7oJu8Y</X509Certificate>
+						</X509Data>
+					</KeyInfo>
+				</Signature>
+			</n1:NFe>
+			<n1:NFe xmlns="http://www.portalfiscal.inf.br/nfe">
+				<infNFe versao="4.00" Id="NFe35180961365284017007550000000006496410105737">
+					<ide>
+						<cUF>35</cUF>
+						<cNF>41010573</cNF>
+						<natOp>Outra entrada de mercadoria ou prestação de serviç</natOp>
+						<mod>55</mod>
+						<serie>0</serie>
+						<nNF>649</nNF>
+						<dhEmi>2018-09-10T14:04:15-03:00</dhEmi>
+						<tpNF>0</tpNF>
+						<idDest>1</idDest>
+						<cMunFG>3509205</cMunFG>
+						<tpImp>2</tpImp>
+						<tpEmis>6</tpEmis>
+						<cDV>7</cDV>
+						<tpAmb>2</tpAmb>
+						<finNFe>4</finNFe>
+						<indFinal>1</indFinal>
+						<indPres>9</indPres>
+						<procEmi>0</procEmi>
+						<verProc>4</verProc>
+						<dhCont>2018-08-30T10:02:43-03:00</dhCont>
+						<xJust>SITE DA SEFAZ ESTÁ INDISPONÍVEL</xJust>
+						<NFref>
+							<refNFe>35180961365284017007550000000006486329320022</refNFe>
+						</NFref>
+					</ide>
+					<emit>
+						<CNPJ>61365284017007</CNPJ>
+						<xNome>P630 Ponto Com Cajamar SP Saraiva e Siciliano S.A</xNome>
+						<xFant>Ponto Com Cajamar SP</xFant>
+						<enderEmit>
+							<xLgr>Av. Marginal Ribeirão dos Cristais</xLgr>
+							<nro>160</nro>
+							<xBairro>Jordanésia</xBairro>
+							<cMun>3509205</cMun>
+							<xMun>Cajamar</xMun>
+							<UF>SP</UF>
+							<CEP>07750000</CEP>
+							<xPais>Brasil</xPais>
+						</enderEmit>
+						<IE>241049966111</IE>
+						<IM>13310</IM>
+						<CRT>3</CRT>
+					</emit>
+					<dest>
+						<CPF>69742555354</CPF>
+						<xNome>NF-E EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL</xNome>
+						<enderDest>
+							<xLgr>Rua Attilio Regulo Arena</xLgr>
+							<nro>210</nro>
+							<xBairro>Campo Belo</xBairro>
+							<cMun>3550308</cMun>
+							<xMun>São Paulo</xMun>
+							<UF>SP</UF>
+							<CEP>04624001</CEP>
+							<cPais>1058</cPais>
+							<xPais>BR</xPais>
+							<fone>1182411234</fone>
+						</enderDest>
+						<indIEDest>9</indIEDest>
+					</dest>
+					<det nItem="1">
+						<prod>
+							<cProd>000000000000000107</cProd>
+							<cEAN>9781616559458</cEAN>
+							<xProd>Fight Club 2</xProd>
+							<NCM>49059100</NCM>
+							<CEST>1902500</CEST>
+							<indEscala>S</indEscala>
+							<CFOP>1949</CFOP>
+							<uCom>PEÇ</uCom>
+							<qCom>1.0000</qCom>
+							<vUnCom>100.0000000000</vUnCom>
+							<vProd>100.00</vProd>
+							<cEANTrib>9781616559458</cEANTrib>
+							<uTrib>UN</uTrib>
+							<qTrib>1.0000</qTrib>
+							<vUnTrib>100.0000000000</vUnTrib>
+							<vFrete>5.00</vFrete>
+							<indTot>1</indTot>
+							<xPed>90004030</xPed>
+						</prod>
+						<imposto>
+							<ICMS>
+								<ICMS10>
+									<orig>0</orig>
+									<CST>10</CST>
+									<modBC>3</modBC>
+									<vBC>0.00</vBC>
+									<pICMS>12.4800</pICMS>
+									<vICMS>12.60</vICMS>
+									<modBCST>0</modBCST>
+									<vBCST>0.00</vBCST>
+									<pICMSST>0.0000</pICMSST>
+									<vICMSST>0.00</vICMSST>
+								</ICMS10>
+							</ICMS>
+							<IPI>
+								<cEnq>999</cEnq>
+								<IPINT>
+									<CST>03</CST>
+								</IPINT>
+							</IPI>
+							<PIS>
+								<PISOutr>
+									<CST>98</CST>
+									<vBC>0.00</vBC>
+									<pPIS>0.0000</pPIS>
+									<vPIS>0.00</vPIS>
+								</PISOutr>
+							</PIS>
+							<COFINS>
+								<COFINSOutr>
+									<CST>98</CST>
+									<vBC>0.00</vBC>
+									<pCOFINS>0.0000</pCOFINS>
+									<vCOFINS>0.00</vCOFINS>
+								</COFINSOutr>
+							</COFINS>
+						</imposto>
+						<impostoDevol>
+							<pDevol>0.00</pDevol>
+							<IPI>
+								<vIPIDevol>0.00</vIPIDevol>
+							</IPI>
+						</impostoDevol>
+						<infAdProd>Sujeito a ICMS + Substituição Tributária</infAdProd>
+					</det>
+					<total>
+						<ICMSTot>
+							<vBC>0.00</vBC>
+							<vICMS>12.60</vICMS>
+							<vICMSDeson>0.00</vICMSDeson>
+							<vFCP>0.00</vFCP>
+							<vBCST>0.00</vBCST>
+							<vST>0.00</vST>
+							<vFCPST>0.00</vFCPST>
+							<vFCPSTRet>0.00</vFCPSTRet>
+							<vProd>100.00</vProd>
+							<vFrete>5.00</vFrete>
+							<vSeg>0.00</vSeg>
+							<vDesc>0.00</vDesc>
+							<vII>0.00</vII>
+							<vIPI>0.00</vIPI>
+							<vIPIDevol>0.00</vIPIDevol>
+							<vPIS>0.00</vPIS>
+							<vCOFINS>0.00</vCOFINS>
+							<vOutro>0.00</vOutro>
+							<vNF>105.00</vNF>
+						</ICMSTot>
+					</total>
+					<transp>
+						<modFrete>0</modFrete>
+					</transp>
+					<cobr>
+						<fat>
+							<nFat>0000003617</nFat>
+							<vOrig>105.00</vOrig>
+							<vDesc>0.00</vDesc>
+							<vLiq>105.00</vLiq>
+						</fat>
+						<dup>
+							<nDup>001</nDup>
+							<dVenc>2018-10-10</dVenc>
+							<vDup>17.49</vDup>
+						</dup>
+						<dup>
+							<nDup>002</nDup>
+							<dVenc>2018-11-09</dVenc>
+							<vDup>17.49</vDup>
+						</dup>
+						<dup>
+							<nDup>003</nDup>
+							<dVenc>2018-12-09</dVenc>
+							<vDup>17.50</vDup>
+						</dup>
+						<dup>
+							<nDup>004</nDup>
+							<dVenc>2019-01-08</dVenc>
+							<vDup>17.50</vDup>
+						</dup>
+						<dup>
+							<nDup>005</nDup>
+							<dVenc>2019-02-07</dVenc>
+							<vDup>17.50</vDup>
+						</dup>
+						<dup>
+							<nDup>006</nDup>
+							<dVenc>2019-03-09</dVenc>
+							<vDup>17.50</vDup>
+						</dup>
+					</cobr>
+					<pag>
+						<detPag>
+							<tPag>90</tPag>
+							<vPag>0.00</vPag>
+						</detPag>
+					</pag>
+					<infAdic>
+						<infCpl>F.Pagto: AR - Cartao de credito; Venda a Prazo 6 parcelas | Encomenda : Dev. Ref. NF: 000000648-000;</infCpl>
+					</infAdic>
+				</infNFe>
+				<Signature xmlns="http://www.w3.org/2000/09/xmldsig#">
+					<SignedInfo>
+						<CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+						<SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>
+						<Reference URI="#NFe35180961365284017007550000000006496410105737">
+							<Transforms>
+								<Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+								<Transform Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+							</Transforms>
+							<DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
+							<DigestValue>VvHxf7sS2y5hPGTO5/OX3ATHo/c=</DigestValue>
+						</Reference>
+					</SignedInfo>
+					<SignatureValue>NITFYCIfelBdn4XvdrTQ5XyjTnc0eFPdj9vUAbWo1XbZQVLRPHbTcYm35dbOSWmhox8wx2AxDsNr&#xA;Kxhs+9zLDeGdYelggOSxgl/6oF10wbRVwac4OJdYDhWP8+Hi3NT+rhdwmPeB6tJvSQIAmxXYrytz&#xA;PWWSU3+q4BS1yz2fuv6GlEHi0EnNxCpfo2ewOHDuRKSsrzdJV+ztcGT4OwIVxBCu92+Q07j4La4G&#xA;E+VTPds9WhG3ZxiT80RbeAk2muki0v9xo0RPRTBQ9BsnX4GRP9qiwYPL8kAF7qJ95ekXnezlIuQO&#xA;ZrvzA57tkARkDbaB8awQlWXW9RzSPbc+SW1c/w==</SignatureValue>
+					<KeyInfo>
+						<X509Data>
+							<X509Certificate>MIIH7jCCBdagAwIBAgIQUORV1SOwIKA7eTTQnhrmBjANBgkqhkiG9w0BAQsFADB4MQswCQYDVQQG&#xA;EwJCUjETMBEGA1UEChMKSUNQLUJyYXNpbDE2MDQGA1UECxMtU2VjcmV0YXJpYSBkYSBSZWNlaXRh&#xA;IEZlZGVyYWwgZG8gQnJhc2lsIC0gUkZCMRwwGgYDVQQDExNBQyBDZXJ0aXNpZ24gUkZCIEc1MB4X&#xA;DTE4MDUxODE3NDQyMFoXDTE5MDUxODE3NDQyMFowgeYxCzAJBgNVBAYTAkJSMRMwEQYDVQQKDApJ&#xA;Q1AtQnJhc2lsMQswCQYDVQQIDAJTUDESMBAGA1UEBwwJU2FvIFBhdWxvMTYwNAYDVQQLDC1TZWNy&#xA;ZXRhcmlhIGRhIFJlY2VpdGEgRmVkZXJhbCBkbyBCcmFzaWwgLSBSRkIxFjAUBgNVBAsMDVJGQiBl&#xA;LUNOUEogQTExIDAeBgNVBAsMF0F1dGVudGljYWRvIHBvciBBUiBIYXNhMS8wLQYDVQQDDCZTQVJB&#xA;SVZBIEUgU0lDSUxJQU5PIFMgQTo2MTM2NTI4NDAwMDEwNDCCASIwDQYJKoZIhvcNAQEBBQADggEP&#xA;ADCCAQoCggEBAIrTX3Uz6TZyFHw4rL1wQF/UVubF0RnjXi66CKNbpKsMz4Ghm72TQPmhRH06yEyY&#xA;NJYyXCMrI3x76ILwImsudb4OuxXPDK9OLrzEX81lfJ58FhreFJprYjqHgMj8UrifTlbaU92IPoiJ&#xA;jYgwBtuec1Lelj8qP6Q4R27vwJLLNaLDVhSRRwkgBQWS2OzIw9ipOO1CK+sTQS8UeCm2qdsX+cmP&#xA;s47s+iaJOIxMdiMJo/0GiRY3h3U36uo16ZY59Nio7mF/YV7Tp06/YpnkbHEFyelG4q6dvyFpbwbJ&#xA;CGnqoGViAFQykuplFKWqAJqJesQYFLtWrK5IEHCURQ6/gW1ncm8CAwEAAaOCAwMwggL/MIGyBgNV&#xA;HREEgaowgaegOAYFYEwBAwSgLwQtMDcwMTE5ODQzMzA1MTUyNTgzOTAwMDAwMDAwMDAwMDAwMDAw&#xA;MDAwMDAwMDAwoB0GBWBMAQMCoBQEEkpPUkdFIFNBUkFJVkEgTkVUT6AZBgVgTAEDA6AQBA42MTM2&#xA;NTI4NDAwMDEwNKAXBgVgTAEDB6AOBAwwMDAwMDAwMDAwMDCBGGNhbHRoYWxlckBzYXJhaXZhLmNv&#xA;bS5icjAJBgNVHRMEAjAAMB8GA1UdIwQYMBaAFFN9f52+0WHQILran+OJpxNzWM1CMH8GA1UdIAR4&#xA;MHYwdAYGYEwBAgEMMGowaAYIKwYBBQUHAgEWXGh0dHA6Ly9pY3AtYnJhc2lsLmNlcnRpc2lnbi5j&#xA;b20uYnIvcmVwb3NpdG9yaW8vZHBjL0FDX0NlcnRpc2lnbl9SRkIvRFBDX0FDX0NlcnRpc2lnbl9S&#xA;RkIucGRmMIG8BgNVHR8EgbQwgbEwV6BVoFOGUWh0dHA6Ly9pY3AtYnJhc2lsLmNlcnRpc2lnbi5j&#xA;b20uYnIvcmVwb3NpdG9yaW8vbGNyL0FDQ2VydGlzaWduUkZCRzUvTGF0ZXN0Q1JMLmNybDBWoFSg&#xA;UoZQaHR0cDovL2ljcC1icmFzaWwub3V0cmFsY3IuY29tLmJyL3JlcG9zaXRvcmlvL2xjci9BQ0Nl&#xA;cnRpc2lnblJGQkc1L0xhdGVzdENSTC5jcmwwDgYDVR0PAQH/BAQDAgXgMB0GA1UdJQQWMBQGCCsG&#xA;AQUFBwMCBggrBgEFBQcDBDCBrAYIKwYBBQUHAQEEgZ8wgZwwXwYIKwYBBQUHMAKGU2h0dHA6Ly9p&#xA;Y3AtYnJhc2lsLmNlcnRpc2lnbi5jb20uYnIvcmVwb3NpdG9yaW8vY2VydGlmaWNhZG9zL0FDX0Nl&#xA;cnRpc2lnbl9SRkJfRzUucDdjMDkGCCsGAQUFBzABhi1odHRwOi8vb2NzcC1hYy1jZXJ0aXNpZ24t&#xA;cmZiLmNlcnRpc2lnbi5jb20uYnIwDQYJKoZIhvcNAQELBQADggIBAKE1cXCKkbOGTHveFn3V45VQ&#xA;kYPCXWI8R4f1HkbUkxzwBY3ytr0uvSBXgLu5pHgNMTjDgy6mDflAnhJKLFDSamHZ71XQE8K207Sv&#xA;5P8pISFbRahz+M3ySbYBxnuwKRox2zeGKifo1FfpsyimdNCS1jYjd819f60J/8PHDcMV8Q058In3&#xA;xQO2VTWizxrnu93A90cLrM0xNJZtVZEF6x3wxqkdHPokrLizaOLhLGLbQGgDtYuO8i9TvMq7yHuY&#xA;D8B9WCzmAdHJwSh50rGCXK9zzFjj+ddjrUpXtWOHI6ROyjGxO+sjvGr/yvEfgYeNUGA1MKRx1jSN&#xA;dOvYlf6Ljps2BHc5nedXq1fc6h4T3JiJzXznIJ5wcOgrkyvvnfWC9waT0oWtD/XE3+ssdp+aYd7u&#xA;y60Ut1EF0OdHypU+GBKfWYmP3WmB8bBLC6OTpVxEz5C0bVBCuWFS+oSwwZb4ukpZH0j+Qz6R7elt&#xA;KZ7WriA599JqmlY382qUoTHorz4AyfX9R1uBLbZiZSeJgomMclOzJ/VR++nY+L5SUnDTrw+pb4Ez&#xA;gGsQq52ZZzygVR3tdcAteyu5DC4BKe6MEhLBys6KbYgQKG4uG2QulWw6vqZ0VXV0ADROoDKRBopk&#xA;GVT+fSBJJTuHdEo34E70IioV5bL9jUNDPkIpbHk1C3+qka7oJu8Y</X509Certificate>
+						</X509Data>
+					</KeyInfo>
+				</Signature>
+			</n1:NFe>
+			<n1:NFe xmlns="http://www.portalfiscal.inf.br/nfe">
+				<infNFe versao="4.00" Id="NFe35180961365284017007550000000006506337446771">
+					<ide>
+						<cUF>35</cUF>
+						<cNF>33744677</cNF>
+						<natOp>Venda de mercadoria adquirida ou recebida de terce</natOp>
+						<mod>55</mod>
+						<serie>0</serie>
+						<nNF>650</nNF>
+						<dhEmi>2018-09-10T14:04:15-03:00</dhEmi>
+						<tpNF>1</tpNF>
+						<idDest>1</idDest>
+						<cMunFG>3509205</cMunFG>
+						<tpImp>2</tpImp>
+						<tpEmis>6</tpEmis>
+						<cDV>1</cDV>
+						<tpAmb>2</tpAmb>
+						<finNFe>1</finNFe>
+						<indFinal>1</indFinal>
+						<indPres>9</indPres>
+						<procEmi>0</procEmi>
+						<verProc>4</verProc>
+						<dhCont>2018-08-30T10:02:43-03:00</dhCont>
+						<xJust>SITE DA SEFAZ ESTÁ INDISPONÍVEL</xJust>
+					</ide>
+					<emit>
+						<CNPJ>61365284017007</CNPJ>
+						<xNome>P630 Ponto Com Cajamar SP Saraiva e Siciliano S.A</xNome>
+						<xFant>Ponto Com Cajamar SP</xFant>
+						<enderEmit>
+							<xLgr>Av. Marginal Ribeirão dos Cristais</xLgr>
+							<nro>160</nro>
+							<xBairro>Jordanésia</xBairro>
+							<cMun>3509205</cMun>
+							<xMun>Cajamar</xMun>
+							<UF>SP</UF>
+							<CEP>07750000</CEP>
+							<xPais>Brasil</xPais>
+						</enderEmit>
+						<IE>241049966111</IE>
+						<IM>13310</IM>
+						<CRT>3</CRT>
+					</emit>
+					<dest>
+						<CPF>69742555354</CPF>
+						<xNome>NF-E EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL</xNome>
+						<enderDest>
+							<xLgr>Rua Attilio Regulo Arena</xLgr>
+							<nro>210</nro>
+							<xBairro>Campo Belo</xBairro>
+							<cMun>3550308</cMun>
+							<xMun>São Paulo</xMun>
+							<UF>SP</UF>
+							<CEP>04624001</CEP>
+							<cPais>1058</cPais>
+							<xPais>BR</xPais>
+							<fone>1182411234</fone>
+						</enderDest>
+						<indIEDest>9</indIEDest>
+					</dest>
+					<det nItem="1">
+						<prod>
+							<cProd>000000000000000106</cProd>
+							<cEAN>7892509055239</cEAN>
+							<xProd>Seduzir - Onde Tudo Começa - Amor , Famí</xProd>
+							<NCM>49059100</NCM>
+							<CEST>1902500</CEST>
+							<indEscala>S</indEscala>
+							<CFOP>5102</CFOP>
+							<uCom>PEÇ</uCom>
+							<qCom>2.0000</qCom>
+							<vUnCom>20.8000000000</vUnCom>
+							<vProd>41.60</vProd>
+							<cEANTrib>7892509055239</cEANTrib>
+							<uTrib>UN</uTrib>
+							<qTrib>2.0000</qTrib>
+							<vUnTrib>20.8000000000</vUnTrib>
+							<vFrete>0.80</vFrete>
+							<vDesc>10.40</vDesc>
+							<indTot>1</indTot>
+							<xPed>56381966</xPed>
+						</prod>
+						<imposto>
+							<ICMS>
+								<ICMS00>
+									<orig>1</orig>
+									<CST>00</CST>
+									<modBC>3</modBC>
+									<vBC>32.00</vBC>
+									<pICMS>0.0000</pICMS>
+									<vICMS>0.00</vICMS>
+								</ICMS00>
+							</ICMS>
+							<IPI>
+								<cEnq>999</cEnq>
+								<IPITrib>
+									<CST>50</CST>
+									<vBC>0.00</vBC>
+									<pIPI>0.0000</pIPI>
+									<vIPI>0.00</vIPI>
+								</IPITrib>
+							</IPI>
+							<PIS>
+								<PISAliq>
+									<CST>01</CST>
+									<vBC>32.00</vBC>
+									<pPIS>0.0000</pPIS>
+									<vPIS>0.00</vPIS>
+								</PISAliq>
+							</PIS>
+							<COFINS>
+								<COFINSAliq>
+									<CST>01</CST>
+									<vBC>32.00</vBC>
+									<pCOFINS>0.0000</pCOFINS>
+									<vCOFINS>0.00</vCOFINS>
+								</COFINSAliq>
+							</COFINS>
+						</imposto>
+					</det>
+					<total>
+						<ICMSTot>
+							<vBC>32.00</vBC>
+							<vICMS>0.00</vICMS>
+							<vICMSDeson>0.00</vICMSDeson>
+							<vFCP>0.00</vFCP>
+							<vBCST>0.00</vBCST>
+							<vST>0.00</vST>
+							<vFCPST>0.00</vFCPST>
+							<vFCPSTRet>0.00</vFCPSTRet>
+							<vProd>41.60</vProd>
+							<vFrete>0.80</vFrete>
+							<vSeg>0.00</vSeg>
+							<vDesc>10.40</vDesc>
+							<vII>0.00</vII>
+							<vIPI>0.00</vIPI>
+							<vIPIDevol>0.00</vIPIDevol>
+							<vPIS>0.00</vPIS>
+							<vCOFINS>0.00</vCOFINS>
+							<vOutro>0.00</vOutro>
+							<vNF>32.00</vNF>
+						</ICMSTot>
+					</total>
+					<transp>
+						<modFrete>1</modFrete>
+					</transp>
+					<cobr>
+						<fat>
+							<nFat>0000003618</nFat>
+							<vOrig>42.40</vOrig>
+							<vDesc>10.40</vDesc>
+							<vLiq>32.00</vLiq>
+						</fat>
+						<dup>
+							<nDup>001</nDup>
+							<dVenc>2018-10-10</dVenc>
+							<vDup>3.20</vDup>
+						</dup>
+						<dup>
+							<nDup>002</nDup>
+							<dVenc>2018-11-09</dVenc>
+							<vDup>3.20</vDup>
+						</dup>
+						<dup>
+							<nDup>003</nDup>
+							<dVenc>2018-12-09</dVenc>
+							<vDup>3.20</vDup>
+						</dup>
+						<dup>
+							<nDup>004</nDup>
+							<dVenc>2019-01-08</dVenc>
+							<vDup>3.20</vDup>
+						</dup>
+						<dup>
+							<nDup>005</nDup>
+							<dVenc>2019-02-07</dVenc>
+							<vDup>3.20</vDup>
+						</dup>
+						<dup>
+							<nDup>006</nDup>
+							<dVenc>2019-03-09</dVenc>
+							<vDup>3.20</vDup>
+						</dup>
+						<dup>
+							<nDup>007</nDup>
+							<dVenc>2019-04-08</dVenc>
+							<vDup>3.20</vDup>
+						</dup>
+						<dup>
+							<nDup>008</nDup>
+							<dVenc>2019-05-08</dVenc>
+							<vDup>3.20</vDup>
+						</dup>
+						<dup>
+							<nDup>009</nDup>
+							<dVenc>2019-06-07</dVenc>
+							<vDup>3.20</vDup>
+						</dup>
+						<dup>
+							<nDup>010</nDup>
+							<dVenc>2019-07-07</dVenc>
+							<vDup>3.20</vDup>
+						</dup>
+					</cobr>
+					<pag>
+						<detPag>
+							<tPag>90</tPag>
+							<vPag>0.00</vPag>
+						</detPag>
+					</pag>
+					<infAdic>
+						<infCpl>F.Pagto: AR - Cartao de credito; Venda a Prazo 10 parcelas | Encomenda: 56381966</infCpl>
+					</infAdic>
+				</infNFe>
+				<Signature xmlns="http://www.w3.org/2000/09/xmldsig#">
+					<SignedInfo>
+						<CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+						<SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>
+						<Reference URI="#NFe35180961365284017007550000000006506337446771">
+							<Transforms>
+								<Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+								<Transform Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+							</Transforms>
+							<DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
+							<DigestValue>N+CwD4rnAy+MWMsASIY/nzXdlcE=</DigestValue>
+						</Reference>
+					</SignedInfo>
+					<SignatureValue>DRgx5U3M+kLRxYRv3XCRoZ5IEOpE8qGQJFTwoMYz4pT3KwBdxhcjB51GhI6MBYjrXEjw273ci9i5&#xA;a0JAidIv9O5EO6RMKTW6r8BgxL7IMRKyAXpcPiMPKVUKfIob/0OPclNDDfxxXuIS4ccS8lYJ8yVw&#xA;9X/PPtJn9I44f8oUxSdzlxu878L5IEc40LK0jq73i5izQS+krHt3Aw+5h5/pPzL2+72g5ZUUWWpt&#xA;qKqQeZ0hDa3dfK6MbzIqHtiIJiVtVTRf3h1p/bafJVZ9Hahh4A7mKDcxVjjF7hmzAsnehgV9ZiJ4&#xA;u3LkymSpKugymNpihZCn3/lZRiRTer7iomb/XA==</SignatureValue>
+					<KeyInfo>
+						<X509Data>
+							<X509Certificate>MIIH7jCCBdagAwIBAgIQUORV1SOwIKA7eTTQnhrmBjANBgkqhkiG9w0BAQsFADB4MQswCQYDVQQG&#xA;EwJCUjETMBEGA1UEChMKSUNQLUJyYXNpbDE2MDQGA1UECxMtU2VjcmV0YXJpYSBkYSBSZWNlaXRh&#xA;IEZlZGVyYWwgZG8gQnJhc2lsIC0gUkZCMRwwGgYDVQQDExNBQyBDZXJ0aXNpZ24gUkZCIEc1MB4X&#xA;DTE4MDUxODE3NDQyMFoXDTE5MDUxODE3NDQyMFowgeYxCzAJBgNVBAYTAkJSMRMwEQYDVQQKDApJ&#xA;Q1AtQnJhc2lsMQswCQYDVQQIDAJTUDESMBAGA1UEBwwJU2FvIFBhdWxvMTYwNAYDVQQLDC1TZWNy&#xA;ZXRhcmlhIGRhIFJlY2VpdGEgRmVkZXJhbCBkbyBCcmFzaWwgLSBSRkIxFjAUBgNVBAsMDVJGQiBl&#xA;LUNOUEogQTExIDAeBgNVBAsMF0F1dGVudGljYWRvIHBvciBBUiBIYXNhMS8wLQYDVQQDDCZTQVJB&#xA;SVZBIEUgU0lDSUxJQU5PIFMgQTo2MTM2NTI4NDAwMDEwNDCCASIwDQYJKoZIhvcNAQEBBQADggEP&#xA;ADCCAQoCggEBAIrTX3Uz6TZyFHw4rL1wQF/UVubF0RnjXi66CKNbpKsMz4Ghm72TQPmhRH06yEyY&#xA;NJYyXCMrI3x76ILwImsudb4OuxXPDK9OLrzEX81lfJ58FhreFJprYjqHgMj8UrifTlbaU92IPoiJ&#xA;jYgwBtuec1Lelj8qP6Q4R27vwJLLNaLDVhSRRwkgBQWS2OzIw9ipOO1CK+sTQS8UeCm2qdsX+cmP&#xA;s47s+iaJOIxMdiMJo/0GiRY3h3U36uo16ZY59Nio7mF/YV7Tp06/YpnkbHEFyelG4q6dvyFpbwbJ&#xA;CGnqoGViAFQykuplFKWqAJqJesQYFLtWrK5IEHCURQ6/gW1ncm8CAwEAAaOCAwMwggL/MIGyBgNV&#xA;HREEgaowgaegOAYFYEwBAwSgLwQtMDcwMTE5ODQzMzA1MTUyNTgzOTAwMDAwMDAwMDAwMDAwMDAw&#xA;MDAwMDAwMDAwoB0GBWBMAQMCoBQEEkpPUkdFIFNBUkFJVkEgTkVUT6AZBgVgTAEDA6AQBA42MTM2&#xA;NTI4NDAwMDEwNKAXBgVgTAEDB6AOBAwwMDAwMDAwMDAwMDCBGGNhbHRoYWxlckBzYXJhaXZhLmNv&#xA;bS5icjAJBgNVHRMEAjAAMB8GA1UdIwQYMBaAFFN9f52+0WHQILran+OJpxNzWM1CMH8GA1UdIAR4&#xA;MHYwdAYGYEwBAgEMMGowaAYIKwYBBQUHAgEWXGh0dHA6Ly9pY3AtYnJhc2lsLmNlcnRpc2lnbi5j&#xA;b20uYnIvcmVwb3NpdG9yaW8vZHBjL0FDX0NlcnRpc2lnbl9SRkIvRFBDX0FDX0NlcnRpc2lnbl9S&#xA;RkIucGRmMIG8BgNVHR8EgbQwgbEwV6BVoFOGUWh0dHA6Ly9pY3AtYnJhc2lsLmNlcnRpc2lnbi5j&#xA;b20uYnIvcmVwb3NpdG9yaW8vbGNyL0FDQ2VydGlzaWduUkZCRzUvTGF0ZXN0Q1JMLmNybDBWoFSg&#xA;UoZQaHR0cDovL2ljcC1icmFzaWwub3V0cmFsY3IuY29tLmJyL3JlcG9zaXRvcmlvL2xjci9BQ0Nl&#xA;cnRpc2lnblJGQkc1L0xhdGVzdENSTC5jcmwwDgYDVR0PAQH/BAQDAgXgMB0GA1UdJQQWMBQGCCsG&#xA;AQUFBwMCBggrBgEFBQcDBDCBrAYIKwYBBQUHAQEEgZ8wgZwwXwYIKwYBBQUHMAKGU2h0dHA6Ly9p&#xA;Y3AtYnJhc2lsLmNlcnRpc2lnbi5jb20uYnIvcmVwb3NpdG9yaW8vY2VydGlmaWNhZG9zL0FDX0Nl&#xA;cnRpc2lnbl9SRkJfRzUucDdjMDkGCCsGAQUFBzABhi1odHRwOi8vb2NzcC1hYy1jZXJ0aXNpZ24t&#xA;cmZiLmNlcnRpc2lnbi5jb20uYnIwDQYJKoZIhvcNAQELBQADggIBAKE1cXCKkbOGTHveFn3V45VQ&#xA;kYPCXWI8R4f1HkbUkxzwBY3ytr0uvSBXgLu5pHgNMTjDgy6mDflAnhJKLFDSamHZ71XQE8K207Sv&#xA;5P8pISFbRahz+M3ySbYBxnuwKRox2zeGKifo1FfpsyimdNCS1jYjd819f60J/8PHDcMV8Q058In3&#xA;xQO2VTWizxrnu93A90cLrM0xNJZtVZEF6x3wxqkdHPokrLizaOLhLGLbQGgDtYuO8i9TvMq7yHuY&#xA;D8B9WCzmAdHJwSh50rGCXK9zzFjj+ddjrUpXtWOHI6ROyjGxO+sjvGr/yvEfgYeNUGA1MKRx1jSN&#xA;dOvYlf6Ljps2BHc5nedXq1fc6h4T3JiJzXznIJ5wcOgrkyvvnfWC9waT0oWtD/XE3+ssdp+aYd7u&#xA;y60Ut1EF0OdHypU+GBKfWYmP3WmB8bBLC6OTpVxEz5C0bVBCuWFS+oSwwZb4ukpZH0j+Qz6R7elt&#xA;KZ7WriA599JqmlY382qUoTHorz4AyfX9R1uBLbZiZSeJgomMclOzJ/VR++nY+L5SUnDTrw+pb4Ez&#xA;gGsQq52ZZzygVR3tdcAteyu5DC4BKe6MEhLBys6KbYgQKG4uG2QulWw6vqZ0VXV0ADROoDKRBopk&#xA;GVT+fSBJJTuHdEo34E70IioV5bL9jUNDPkIpbHk1C3+qka7oJu8Y</X509Certificate>
+						</X509Data>
+					</KeyInfo>
+				</Signature>
+			</n1:NFe>
+		</n1:enviNFe>
+	</n0:nfeDadosMsg>
+</n0:nfeAutorizacaoLote>

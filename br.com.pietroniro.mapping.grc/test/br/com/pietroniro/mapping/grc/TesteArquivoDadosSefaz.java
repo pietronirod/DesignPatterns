@@ -3,6 +3,7 @@ package br.com.pietroniro.mapping.grc;
 import static org.junit.Assert.*;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -14,7 +15,9 @@ public class TesteArquivoDadosSefaz {
 	
 	@Before
 	public void setUp() throws Exception {
-		cut = DadosSefazFactory.getDadosSefaz(new ArquivoDadosSefazFactory("sefaz.csv"));
+		cut = DadosSefazFactory.getDadosSefaz(
+				new ArquivoDadosSefazFactory("sefaz.csv", 
+						Logger.getLogger(TesteArquivoDadosSefaz.class.getName())));
 	}
 
 	@Test

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<n0:nfeConsultaNF xmlns:n0="http://sap.com/xi/NFE/009" xmlns:prx="urn:sap.com:proxy:NFD:/1SAI/TAS8753CFA36DB0AE2C6886:750" xmlns:n1="http://www.portalfiscal.inf.br/nfe">
+	<n0:cUF>35</n0:cUF>
+	<n0:tpEmis>1</n0:tpEmis>
+	<n0:tpAmb>2</n0:tpAmb>
+	<n0:CNPJ>61365284018151</n0:CNPJ>
+	<n0:mod>55</n0:mod>
+	<n0:mode>I1</n0:mode>
+	<n0:objGuid>000D3A009E051ED8ADF3CD34170B9170</n0:objGuid>
+	<n0:nfeDadosMsg>
+		<n1:consSitNFe versao="4.00">
+			<n1:tpAmb>2</n1:tpAmb>
+			<n1:xServ>CONSULTAR</n1:xServ>
+			<n1:chNFe>35180961365284018151550000000332911668291854</n1:chNFe>
+		</n1:consSitNFe>
+	</n0:nfeDadosMsg>
+</n0:nfeConsultaNF>

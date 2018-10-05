@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<n0:nfeDistDFeInteresse xmlns:n0="http://sap.com/xi/NFE/009" xmlns:n1="http://www.portalfiscal.inf.br/nfe">
+	<n0:cUF>26</n0:cUF>
+	<n0:tpAmb>2</n0:tpAmb>
+	<n0:CNPJ/>
+	<n0:nfeDadosMsg>
+		<n1:distDFeInt versao="1.01">
+			<n1:tpAmb>2</n1:tpAmb>
+			<n1:cUFAutor>26</n1:cUFAutor>
+			<n1:CNPJ>61365284020130</n1:CNPJ>
+			<n1:distNSU>
+				<n1:ultNSU>000000000000000</n1:ultNSU>
+			</n1:distNSU>
+		</n1:distDFeInt>
+	</n0:nfeDadosMsg>
+</n0:nfeDistDFeInteresse>

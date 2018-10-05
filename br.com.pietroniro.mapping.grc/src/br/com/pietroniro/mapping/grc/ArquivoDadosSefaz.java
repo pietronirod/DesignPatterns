@@ -7,20 +7,27 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.sap.aii.mapping.api.AbstractTrace;
+
 public class ArquivoDadosSefaz implements DadosSefaz {
 
-	private List<Servico> servicos = new ArrayList<Servico>();
-	private Logger logger;
+	private String MSG01 = "Erro ao processar registro: ";
+	private String MSG02 = "Erro ao acessar arquivo ";
 	
-	public ArquivoDadosSefaz(String uri) {
-		this();
+	private List<Servico> servicos = new ArrayList<Servico>();
+
+	private AbstractTrace trace;
+	private Logger logger;
+
+	public ArquivoDadosSefaz(String uri, Object trace) {
+		if (trace instanceof AbstractTrace) {
+			this.trace = (AbstractTrace) trace;
+		} else {
+			this.logger = (Logger) trace;
+		}
 		servicos = this.readData(uri);
 	}
-	
-	public ArquivoDadosSefaz() {
-		logger = Logger.getLogger(ArquivoDadosSefaz.class.getName());
-	}
-	
+			
 	@Override
 	public Servico procuraServico(String estado, String servico, String versao, String ambiente) {
 		Servico ret = null;
@@ -43,6 +50,14 @@ public class ArquivoDadosSefaz implements DadosSefaz {
 		return this.servicos;
 	}
 
+	private void log(String msg) {
+		if (trace == null) {
+			logger.log(Level.WARNING, msg);
+		} else {
+			trace.addWarning(msg);
+		}
+	}
+	
 	private void readResource(String uri) {
 		String line;
 		BufferedReader br;
@@ -57,21 +72,21 @@ public class ArquivoDadosSefaz implements DadosSefaz {
 				}
 			}
 		} catch (Exception e) {
-			logger.log(Level.SEVERE, "Erro ao acessar arquivo "+uri);
+			this.log(MSG02 + uri);
 		}
 	}
 	
 	private Boolean isRegistroValido(String[] registro) {
 		Boolean ret = false;
-		String msg = "Erro ao processar registro: ";
+		String msg = "";
 		
 		if (registro.length == 7) {
 			ret = true;
 		} else {
 			for (String reg: registro) {
-				msg = msg + "** " + reg + " ";
+				msg = MSG01 + "** " + reg + " ";
 			}
-			logger.log(Level.WARNING, msg);
+			this.log(msg);
 		}
 		return ret;
 	}
