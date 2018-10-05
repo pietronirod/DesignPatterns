@@ -31,21 +31,21 @@ public class TesteArquivoDadosSefaz {
 	@Test
 	public void testArquivoNaoExisteServicoNaoExiste() {
 		cut.readData("notFound.csv");
-		Servico serv = cut.procuraServico("estado", "servico", "versao", "ambiente");
+		Servico serv = cut.procuraServico("estado", "servico", "tpemis", "versao", "ambiente");
 		
 		assertNull(serv);
 	}
 	
 	@Test
 	public void testArquivoExisteServicoNaoExiste() {
-		Servico serv = cut.procuraServico("estado", "servico", "versao", "ambiente");
+		Servico serv = cut.procuraServico("estado", "servico", "tpemis", "versao", "ambiente");
 		
 		assertNull(serv);
 	}
 	
 	@Test
 	public void testArquivoExisteServicoExiste() {
-		Servico serv = cut.procuraServico("Estados", "Servico", "Versao", "Ambiente");
+		Servico serv = cut.procuraServico("Estados", "Servico", "Versao", "Emissao", "Ambiente");
 		
 		assertNotNull(serv);
 	}

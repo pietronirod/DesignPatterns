@@ -15,7 +15,7 @@ public class TesteServicoBean {
 				String.valueOf(Estados.RJ.getCodigo()) };
 		
 		cut = ServicoFactory.getServico(new ServicoBeanFactory(		
-				"autorizador", "servico", "versao", "ambiente", estados, "url", "soapAction"));
+				"autorizador", "servico", "versao", "tpemis", "ambiente", estados, "url", "soapAction"));
 	}
 
 	@Test
@@ -31,6 +31,11 @@ public class TesteServicoBean {
 	@Test
 	public void testGetVersao() {
 		assertEquals("versao", cut.getVersao());
+	}
+	
+	@Test
+	public void testTpEmis() {
+		assertEquals("tpemis", cut.getTpEmis());
 	}
 
 	@Test

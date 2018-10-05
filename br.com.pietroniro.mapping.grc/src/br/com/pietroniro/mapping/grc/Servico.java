@@ -13,6 +13,10 @@ public interface Servico {
 
 	void setVersao(String versao);
 
+	String getTpEmis();
+	
+	void setTpEmis(String tpEmis);
+	
 	String getAmbiente();
 
 	void setAmbiente(String ambiente);

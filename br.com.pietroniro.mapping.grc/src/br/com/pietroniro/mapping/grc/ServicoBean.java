@@ -4,16 +4,18 @@ public class ServicoBean implements Servico {
 	protected String autorizador;
 	protected String servico;
 	protected String versao;
+	protected String tpEmis;
 	protected String ambiente;
 	protected String[] estados;
 	protected String url;
 	protected String soapAction;
 	
-	public ServicoBean(String autorizador, String servico, String versao, String ambiente, String[] estados,
-			String url, String soapAction) {
+	public ServicoBean(String autorizador, String servico, String versao, String tpEmis, 
+			String ambiente, String[] estados, String url, String soapAction) {
 		this.setAutorizador(autorizador);
 		this.setServico(servico);
 		this.setVersao(versao);
+		this.setTpEmis(tpEmis);
 		this.setAmbiente(ambiente);
 		this.setEstados(estados);
 		this.setUrl(url);
@@ -125,5 +127,13 @@ public class ServicoBean implements Servico {
 			}
 		}
 		return false;
+	}
+	@Override
+	public String getTpEmis() {
+		return tpEmis;
+	}
+	@Override
+	public void setTpEmis(String tpEmis) {
+		this.tpEmis = tpEmis;
 	}
 }

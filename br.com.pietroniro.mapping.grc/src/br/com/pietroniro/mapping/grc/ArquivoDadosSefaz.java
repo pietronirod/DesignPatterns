@@ -11,8 +11,9 @@ import com.sap.aii.mapping.api.AbstractTrace;
 
 public class ArquivoDadosSefaz implements DadosSefaz {
 
-	private String MSG01 = "Erro ao processar registro: ";
-	private String MSG02 = "Erro ao acessar arquivo ";
+	private static final int TAM_REGISTRO = 8;
+	private static final String MSG01     = "Erro ao processar registro: ";
+	private static final String MSG02     = "Erro ao acessar arquivo ";
 	
 	private List<Servico> servicos = new ArrayList<Servico>();
 
@@ -29,13 +30,14 @@ public class ArquivoDadosSefaz implements DadosSefaz {
 	}
 			
 	@Override
-	public Servico procuraServico(String estado, String servico, String versao, String ambiente) {
+	public Servico procuraServico(String estado, String servico, String versao, String emissao, String ambiente) {
 		Servico ret = null;
 		
 		for (Servico serv: servicos) {
 			if (serv.existeEstado(estado)         &&
 			    serv.getServico().equals(servico) &&
 			    serv.getVersao().equals(versao)   &&
+			    serv.getTpEmis().equals(emissao)  &&
 			    serv.getAmbiente().equals(ambiente)) {
 				ret = serv;
 			}
@@ -80,7 +82,7 @@ public class ArquivoDadosSefaz implements DadosSefaz {
 		Boolean ret = false;
 		String msg = "";
 		
-		if (registro.length == 7) {
+		if (registro.length == TAM_REGISTRO) {
 			ret = true;
 		} else {
 			for (String reg: registro) {
@@ -102,9 +104,10 @@ public class ArquivoDadosSefaz implements DadosSefaz {
 					separado[1], 
 					separado[2],
 					separado[3],
-					separado[4].split(Separador.ESTADOS.getSeparador()),
-					separado[5],
-					separado[6]));			
+					separado[4],
+					separado[5].split(Separador.ESTADOS.getSeparador()),
+					separado[6],
+					separado[7]));			
 		} else {
 			//throw new Exception("Arquivo de dados de serviços da SEFAZ inválido!");
 		}
