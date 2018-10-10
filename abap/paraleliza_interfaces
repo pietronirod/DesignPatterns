@@ -1,0 +1,243 @@
+*&---------------------------------------------------------------------*
+*& Report ZPSD_PARALELIZAR_INTERFACE
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zpsd_paralelizar_interface.
+
+*--------------------------------------------------------------------*
+* Declarações
+*--------------------------------------------------------------------*
+TABLES: sscrfields.
+
+DATA:
+  gv_exec_cnt TYPE sy-index,
+  BEGIN OF gs_config,
+    bd   TYPE ztbsd068,
+    stop TYPE abap_bool,
+  END OF gs_config.
+
+*--------------------------------------------------------------------*
+* Tela
+*--------------------------------------------------------------------*
+PARAMETERS:
+  p_idgap  TYPE ztbsd068-id_interface,
+  p_rfcgrp TYPE spta_rfcgr MEMORY ID spta_rfcgr.
+
+SELECTION-SCREEN:
+  SKIP,
+  BEGIN OF LINE,
+    PUSHBUTTON 2(35) bt_1 USER-COMMAND bt1,
+  END OF LINE,
+  SKIP,
+  BEGIN OF LINE,
+    PUSHBUTTON 2(35) bt_2 USER-COMMAND bt2,
+  END OF LINE.
+
+AT SELECTION-SCREEN OUTPUT.
+  bt_1 = 'Atualizar lista de interfaces'.
+  bt_2 = 'Atualizar config. paralelização'.
+
+AT SELECTION-SCREEN.
+  CASE sscrfields.
+    WHEN 'BT1'.
+      CALL TRANSACTION 'ZPOT001'.
+    WHEN 'BT2'.
+      CALL TRANSACTION 'ZSDT069'.
+  ENDCASE.
+
+*--------------------------------------------------------------------*
+START-OF-SELECTION.
+*--------------------------------------------------------------------*
+
+  IF p_idgap IS INITIAL OR p_rfcgrp IS INITIAL.
+    MESSAGE s055(00) DISPLAY LIKE 'E'.
+    STOP.
+  ENDIF.
+
+* Obter configurações para a interface
+  SELECT SINGLE * FROM ztbsd068
+    INTO @gs_config-bd
+    WHERE id_interface EQ @p_idgap.
+
+  IF sy-subrc NE 0.
+    MESSAGE |{ TEXT-m01 } { p_idgap }. Tab. ZTBSD068| TYPE 'E'.
+  ENDIF.
+
+  IF gs_config-bd-programm IS INITIAL.
+    MESSAGE |{ TEXT-m03 } { p_idgap }. Tab. ZTBSD068| TYPE 'E'.
+  ENDIF.
+
+  SELECT SINGLE name
+    FROM trdir
+    INTO @DATA(lv_prog_name)
+    WHERE name EQ @gs_config-bd-programm.
+  IF sy-subrc NE 0.
+    MESSAGE |{ TEXT-m04 } { gs_config-bd-programm } { TEXT-m05 }| TYPE 'E'.
+  ENDIF.
+
+* Verificar se já existe JOB ativo
+  IF sy-batch EQ abap_true.
+    DATA(gv_jobname) = CONV btcjob( |{ sy-repid }_{ p_idgap }| ).
+    SELECT SINGLE * FROM tbtcp
+      INTO @DATA(gs_tbtcp)
+      WHERE jobname EQ @gv_jobname
+        AND status  IN ('R','Y','P','S').
+
+    IF sy-subrc IS INITIAL.
+      MESSAGE |{ TEXT-m02 } { p_idgap }| TYPE 'E'.
+    ENDIF.
+  ENDIF.
+
+* Disparar processos em paralelo
+  CALL FUNCTION 'SPTA_PARA_PROCESS_START_2'
+    EXPORTING
+      server_group             = p_rfcgrp
+      max_no_of_tasks          = gs_config-bd-max_tasks
+      before_rfc_callback_form = 'BEFORE_RFC'
+      in_rfc_callback_form     = 'IN_RFC'
+      after_rfc_callback_form  = 'AFTER_RFC'
+      callback_prog            = sy-repid
+    EXCEPTIONS
+      invalid_server_group     = 1
+      no_resources_available   = 2
+      OTHERS                   = 3.
+
+*--------------------------------------------------------------------*
+END-OF-SELECTION.
+*--------------------------------------------------------------------*
+
+* Disparar novo JOB
+  IF sy-batch EQ abap_true.
+    DATA gv_jobnumber TYPE tbtcjob-jobcount.
+    CALL FUNCTION 'JOB_OPEN'
+      EXPORTING
+        jobname  = gv_jobname
+      IMPORTING
+        jobcount = gv_jobnumber
+      EXCEPTIONS
+        OTHERS   = 1.
+    IF sy-subrc IS INITIAL.
+      SUBMIT zpsd_paralelizar_interface WITH p_idgap EQ p_idgap
+                                        WITH p_rfcgrp EQ p_rfcgrp
+                                        VIA JOB gv_jobname NUMBER gv_jobnumber
+                                        AND RETURN.
+      IF sy-subrc IS INITIAL.
+        DATA: gv_jobdate TYPE sy-datum,
+              gv_jobtime TYPE sy-uzeit.
+        CALL FUNCTION 'END_TIME_DETERMINE'
+          EXPORTING
+            duration = gs_config-bd-job_delay
+            unit     = 'S'
+          IMPORTING
+            end_date = gv_jobdate
+            end_time = gv_jobtime
+          EXCEPTIONS
+            OTHERS   = 1.
+
+        CALL FUNCTION 'JOB_CLOSE'
+          EXPORTING
+            jobcount  = gv_jobnumber
+            jobname   = gv_jobname
+            sdlstrtdt = gv_jobdate
+            sdlstrttm = gv_jobtime
+          EXCEPTIONS
+            OTHERS    = 1.
+      ENDIF.
+    ENDIF.
+  ENDIF.
+
+*---------------------------------------------------------------------*
+*       FORM BEFORE_RFC                                               *
+*---------------------------------------------------------------------*
+*       Callback-Form invoked before each RFC                         *
+*---------------------------------------------------------------------*
+FORM before_rfc
+   USING
+      p_before_rfc_imp     TYPE spta_t_before_rfc_imp
+   CHANGING
+      p_before_rfc_exp     TYPE spta_t_before_rfc_exp
+      p_rfcdata            TYPE spta_t_indxtab
+      p_failed_objects     TYPE spta_t_failed_objects
+      p_objects_in_process TYPE spta_t_objects_in_process
+      p_user_param.
+
+  DATA ls_config LIKE gs_config.
+
+  IF ( gv_exec_cnt LT gs_config-bd-max_exec OR  "Se não atingiu máximo de execuções
+       gs_config-bd-max_exec EQ 0 ) AND         "Ou se não foi definido um máximo
+       gs_config-stop IS INITIAL.               "E se não foi retornado um stop
+    p_before_rfc_exp-start_rfc = abap_true.
+    gv_exec_cnt = gv_exec_cnt + 1.
+  ELSE.
+    CLEAR p_before_rfc_exp-start_rfc.
+  ENDIF.
+
+  CALL FUNCTION 'SPTA_INDX_PACKAGE_ENCODE'
+    EXPORTING
+      data    = gs_config
+    IMPORTING
+      indxtab = p_rfcdata.
+
+ENDFORM.                               "BEFORE_RFC
+*---------------------------------------------------------------------*
+*       FORM IN_RFC                                                   *
+*---------------------------------------------------------------------*
+*       Callback-Form invoked within the RFC                          *
+*---------------------------------------------------------------------*
+FORM in_rfc
+   USING
+      p_in_rfc_imp  TYPE spta_t_in_rfc_imp
+   CHANGING
+      p_in_rfc_exp  TYPE spta_t_in_rfc_exp
+      p_rfcdata     TYPE spta_t_indxtab.
+
+  DATA: ls_config LIKE gs_config,
+        lv_stop   TYPE abap_bool.
+  CALL FUNCTION 'SPTA_INDX_PACKAGE_DECODE'
+    EXPORTING
+      indxtab = p_rfcdata
+    IMPORTING
+      data    = ls_config.
+
+  SUBMIT (ls_config-bd-programm) USING SELECTION-SET ls_config-bd-variant AND RETURN.
+  IMPORT stop = lv_stop FROM MEMORY ID 'PARALLEL_INTERFACE'.
+  IF sy-subrc IS INITIAL AND lv_stop IS NOT INITIAL.
+    ls_config-stop = lv_stop.
+  ENDIF.
+
+  CALL FUNCTION 'SPTA_INDX_PACKAGE_ENCODE'
+    EXPORTING
+      data    = ls_config
+    IMPORTING
+      indxtab = p_rfcdata.
+
+ENDFORM.
+*---------------------------------------------------------------------*
+*       FORM AFTER_RFC                                                *
+*---------------------------------------------------------------------*
+*       Callback-Form invoked after RFC                               *
+*---------------------------------------------------------------------*
+FORM after_rfc
+   USING
+      p_rfcdata            TYPE spta_t_indxtab
+      p_rfcsubrc           TYPE sy-subrc
+      p_rfcmsg             TYPE spta_t_rfcmsg
+      p_objects_in_process TYPE spta_t_objects_in_process
+      p_after_rfc_imp      TYPE spta_t_after_rfc_imp
+   CHANGING
+      p_after_rfc_exp      TYPE spta_t_after_rfc_exp
+      p_user_param.
+
+  DATA ls_config LIKE gs_config.
+  CALL FUNCTION 'SPTA_INDX_PACKAGE_DECODE'
+    EXPORTING
+      indxtab = p_rfcdata
+    IMPORTING
+      data    = ls_config.
+
+  IF ls_config-stop IS NOT INITIAL.
+    gs_config-stop = ls_config-stop.
+  ENDIF.
+
+ENDFORM.                               "AFTER_RFC

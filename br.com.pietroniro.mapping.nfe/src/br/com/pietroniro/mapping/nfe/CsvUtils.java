@@ -13,16 +13,15 @@ public class CsvUtils {
 	}
 	
 	public List<List<String>> getData(InputStream resource, int col) {
-		List<String> colunas = new ArrayList<String>();
 		List<List<String>> ret = new ArrayList<List<String>>();
 		Scanner scan = new Scanner(resource).useDelimiter(Separador.PONTOVIRGULA.getValue()+"|\\n");
 
 		while(scan.hasNext()) {		
+			List<String> colunas = new ArrayList<String>(col);
 			for (int i=0; i < col; i++) {
 				colunas.add(scan.next());
 			}
 			ret.add(colunas);
-			ret.clear();
 		}
 		
 		return ret;
