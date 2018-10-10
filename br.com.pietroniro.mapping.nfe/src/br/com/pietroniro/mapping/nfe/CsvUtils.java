@@ -7,7 +7,6 @@ import java.util.Scanner;
 
 public class CsvUtils {
 	
-	
 	public static CsvUtils newInstance() {
 		return new CsvUtils();
 	}
