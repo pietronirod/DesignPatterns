@@ -244,16 +244,16 @@ CLASS lcl_correcao IMPLEMENTATION.
 
   METHOD importa_arquivo_servidor.
     DATA:
-      ls_arquivo LIKE LINE OF mt_arquivo.
+      ls_arquivo LIKE LINE OF mt_arquivo_txt.
 
     TRY.
-        OPEN DATASET m_arquivo FOR INPUT IN TEXT MODE ENCODING DEFAULT.
+        OPEN DATASET m_arquivo FOR INPUT IN TEXT MODE ENCODING DEFAULT WITH WINDOWS LINEFEED.
       CATCH cx_sy_file_authority.
         MESSAGE 'Sem autorização para acessar arquivo no servidor.'(m02) TYPE 'E'.
         EXIT.
     ENDTRY.
-    IF sy-subrc = 0.
-      MESSAGE 'Não foi possível abrir arquivo no servidor.'(m03) TYPE 'E'.
+    IF sy-subrc <> 0.
+      MESSAGE 'Não foi possível abrir arquivo no servidor.'(m04) TYPE 'E'.
       EXIT.
     ENDIF.
 
@@ -263,7 +263,7 @@ CLASS lcl_correcao IMPLEMENTATION.
       IF sy-subrc <> 0.
         EXIT.
       ENDIF.
-      mt_arquivo = VALUE #( BASE mt_arquivo ( ls_arquivo ) ).
+      mt_arquivo_txt = VALUE #( BASE mt_arquivo_txt ( ls_arquivo ) ).
     ENDDO.
 
     CLOSE DATASET m_arquivo.

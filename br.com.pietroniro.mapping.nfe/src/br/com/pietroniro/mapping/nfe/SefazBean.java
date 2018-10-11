@@ -85,7 +85,7 @@ public class SefazBean implements Comparable<SefazBean> {
 	public int compareTo(SefazBean outraSefaz) {
 		int ret;
 		
-		ret =servico.compareTo(outraSefaz.getServico());
+		ret = servico.compareTo(outraSefaz.getServico());
 		if (ret != 0) return ret;
 		
 		ret = versao.compareTo(outraSefaz.getVersao());
@@ -97,8 +97,9 @@ public class SefazBean implements Comparable<SefazBean> {
 		ret = ambiente.compareTo(outraSefaz.getAmbiente());
 		if (ret != 0) return ret;
 		
+		ret = estados.toString().compareTo(outraSefaz.getEstados().toString());
 //		ret = estados.
-//		if (ret != 0) return ret;
+		if (ret != 0) return ret;
 		
 		return ret;
 	}
