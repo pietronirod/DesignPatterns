@@ -1,0 +1,426 @@
+*&---------------------------------------------------------------------*
+*& Report ZPSD_CORRIGE_DESCONTO
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zpsd_corrige_desconto LINE-SIZE 180.
+
+CONSTANTS:
+  gco_a00 TYPE screen-group1 VALUE 'A00',
+  gco_a01 TYPE screen-group1 VALUE 'A01'.
+
+CLASS lcl_correcao DEFINITION CREATE PRIVATE.
+  PUBLIC SECTION.
+    CONSTANTS:
+      co_separador TYPE c LENGTH 1         VALUE ';',
+      co_brl       TYPE bapicond-currency  VALUE 'BRL'.
+
+    TYPES:
+      BEGIN OF lty_s_arquivo,
+        salesdocument TYPE bapivbeln-vbeln,
+        itm_number    TYPE bapisditm-itm_number,
+        cond_type     TYPE bapicond-cond_type,
+        cond_value    TYPE c LENGTH 35,
+      END OF lty_s_arquivo,
+      BEGIN OF lty_s_txt,
+        texto TYPE c LENGTH 400,
+      END OF lty_s_txt,
+
+      lty_t_conditions_in  TYPE STANDARD TABLE OF bapicond    WITH NON-UNIQUE DEFAULT KEY,
+      lty_t_conditions_inx TYPE STANDARD TABLE OF bapicondx   WITH NON-UNIQUE DEFAULT KEY,
+      lty_t_bapisdhedu     TYPE STANDARD TABLE OF bapisdhedu  WITH NON-UNIQUE DEFAULT KEY,
+      lty_t_bapisdcond     TYPE STANDARD TABLE OF bapisdcond
+        WITH NON-UNIQUE DEFAULT KEY
+        WITH NON-UNIQUE SORTED KEY ks_1 COMPONENTS sd_doc itm_number cond_type,
+
+      lty_t_txt            TYPE STANDARD TABLE OF lty_s_txt WITH NON-UNIQUE DEFAULT KEY,
+      lty_t_arquivo        TYPE STANDARD TABLE OF lty_s_arquivo
+        WITH NON-UNIQUE KEY salesdocument itm_number.
+
+    CLASS-METHODS:
+      get_instance
+        IMPORTING i_arquivo         TYPE string
+                  i_local           TYPE abap_bool
+        RETURNING VALUE(r_correcao) TYPE REF TO lcl_correcao,
+      abre_arquivo_local CHANGING c_arquivo TYPE rlgrap-filename,
+      abre_arquivo_servidor CHANGING c_arquivo TYPE authb-filename.
+
+    METHODS:
+      executa,
+      exibe_log.
+
+  PRIVATE SECTION.
+    CLASS-DATA:
+      m_correcao TYPE REF TO lcl_correcao.
+
+    DATA:
+      m_arquivo      TYPE string,
+      m_local        TYPE abap_bool,
+      mt_arquivo     TYPE lty_t_arquivo,
+      mt_arquivo_txt TYPE lty_t_txt,
+      mt_return      TYPE bapiret2tab.
+
+    METHODS:
+      constructor
+        IMPORTING i_arquivo TYPE string
+                  i_local   TYPE abap_bool,
+      importa_arquivo,
+      importa_arquivo_local,
+      importa_arquivo_servidor,
+      converte_arquivo,
+      get_salesorder_details
+        IMPORTING i_salesdocument         TYPE bapivbeln-vbeln
+        EXPORTING et_sales_conditions     TYPE lty_t_bapisdcond
+                  et_sales_schedule_lines TYPE lty_t_bapisdhedu,
+      altera_ov,
+      update_log
+        IMPORTING i_salesorder TYPE bapivbeln-vbeln
+                  it_return    TYPE bapiret2tab.
+ENDCLASS.
+
+SELECTION-SCREEN: BEGIN OF BLOCK b0 WITH FRAME TITLE TEXT-000.
+PARAMETERS:
+  p_locl RADIOBUTTON GROUP file DEFAULT 'X' USER-COMMAND usr,
+  p_serv RADIOBUTTON GROUP file.
+SELECTION-SCREEN: END OF BLOCK b0.
+
+SELECTION-SCREEN: BEGIN OF BLOCK b1 WITH FRAME TITLE TEXT-001.
+PARAMETERS:
+  p_locl_a TYPE rlgrap-filename MODIF ID a00,
+  p_serv_a TYPE authb-filename  MODIF ID a01.
+SELECTION-SCREEN: END OF BLOCK b1.
+
+AT SELECTION-SCREEN OUTPUT.
+  DATA(gv_locl) = SWITCH i( p_locl WHEN abap_true THEN 1 ELSE 0 ).
+  DATA(gv_serv) = SWITCH i( p_serv WHEN abap_true THEN 1 ELSE 0 ).
+
+  LOOP AT SCREEN.
+    CHECK screen-group1 = gco_a00 OR screen-group1 = gco_a01.
+    CASE screen-group1.
+      WHEN gco_a00.
+        screen-input  = gv_locl.
+        screen-active = gv_locl.
+      WHEN gco_a01.
+        screen-input  = gv_serv.
+        screen-active = gv_serv.
+    ENDCASE.
+    MODIFY SCREEN.
+  ENDLOOP.
+
+AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_locl_a.
+  lcl_correcao=>abre_arquivo_local( CHANGING c_arquivo = p_locl_a ).
+
+AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_serv_a.
+  lcl_correcao=>abre_arquivo_servidor( CHANGING c_arquivo = p_serv_a ).
+
+START-OF-SELECTION.
+  DATA(lv_arquivo) = SWITCH #( p_locl
+    WHEN abap_true THEN CONV string( p_locl_a )
+    ELSE CONV string( p_serv_a ) ).
+
+  IF lv_arquivo IS INITIAL.
+    MESSAGE 'Arquivo é obrigatório.'(m03) TYPE 'I' DISPLAY LIKE 'E'.
+    EXIT.
+  ENDIF.
+
+  DATA(lr_report) = lcl_correcao=>get_instance( EXPORTING
+    i_arquivo = lv_arquivo
+    i_local   = p_locl ).
+  lr_report->executa( ).
+  lr_report->exibe_log( ).
+
+CLASS lcl_correcao IMPLEMENTATION.
+  METHOD constructor.
+    m_arquivo = i_arquivo.
+    m_local   = i_local.
+  ENDMETHOD.
+
+  METHOD get_instance.
+    IF m_correcao IS NOT BOUND.
+      m_correcao = NEW #(
+        i_arquivo = i_arquivo
+        i_local   = i_local ).
+    ENDIF.
+    r_correcao = m_correcao.
+  ENDMETHOD.
+
+  METHOD abre_arquivo_local.
+    DATA:
+      lt_file TYPE filetable,
+      lv_rc   TYPE i.
+
+    cl_gui_frontend_services=>file_open_dialog(
+      EXPORTING file_filter = '.csv'
+      CHANGING  file_table = lt_file
+                rc         = lv_rc ).
+
+    IF lv_rc = 1.
+      c_arquivo = lt_file[ 1 ].
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD abre_arquivo_servidor.
+    CALL FUNCTION '/SAPDMC/LSM_F4_SERVER_FILE'
+      IMPORTING
+        serverfile       = c_arquivo
+      EXCEPTIONS
+        canceled_by_user = 1
+        OTHERS           = 2.
+    IF sy-subrc <> 0.
+* Implement suitable error handling here
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD executa.
+    CHECK m_arquivo IS NOT INITIAL.
+
+    importa_arquivo( ).
+    converte_arquivo( ).
+    altera_ov( ).
+  ENDMETHOD.
+
+  METHOD converte_arquivo.
+    DATA:
+    ls_arquivo LIKE LINE OF mt_arquivo.
+
+    CHECK mt_arquivo_txt IS NOT INITIAL.
+
+    CLEAR mt_arquivo.
+    LOOP AT mt_arquivo_txt ASSIGNING FIELD-SYMBOL(<fs_arquivo_txt>) FROM 2.
+      SPLIT <fs_arquivo_txt> AT co_separador INTO
+        ls_arquivo-salesdocument
+        ls_arquivo-itm_number
+        ls_arquivo-cond_type
+        ls_arquivo-cond_value.
+
+      ls_arquivo-itm_number = |{ ls_arquivo-itm_number ALIGN = RIGHT }|.
+      TRANSLATE ls_arquivo-itm_number USING ' 0'.
+      REPLACE ',' IN ls_arquivo-cond_value WITH '.'.
+      ls_arquivo-cond_value = |{ ls_arquivo-cond_value ALIGN = LEFT }|.
+      mt_arquivo = VALUE #( BASE mt_arquivo ( ls_arquivo ) ).
+    ENDLOOP.
+  ENDMETHOD.
+
+  METHOD importa_arquivo.
+    IF m_local = abap_true.
+      importa_arquivo_local( ).
+    ELSE.
+      importa_arquivo_servidor( ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD importa_arquivo_local.
+    cl_gui_frontend_services=>gui_upload(
+      EXPORTING
+        filename                = m_arquivo
+        filetype                = 'ASC'
+      CHANGING
+        data_tab                = mt_arquivo_txt
+      EXCEPTIONS
+        file_open_error         = 1
+        file_read_error         = 2
+        no_batch                = 3
+        gui_refuse_filetransfer = 4
+        invalid_type            = 5
+        no_authority            = 6
+        unknown_error           = 7
+        bad_data_format         = 8
+        header_not_allowed      = 9
+        separator_not_allowed   = 10
+        header_too_long         = 11
+        unknown_dp_error        = 12
+        access_denied           = 13
+        dp_out_of_memory        = 14
+        disk_full               = 15
+        dp_timeout              = 16
+        not_supported_by_gui    = 17
+        error_no_gui            = 18
+        OTHERS                  = 19
+    ).
+    IF sy-subrc <> 0.
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD importa_arquivo_servidor.
+    DATA:
+      ls_arquivo LIKE LINE OF mt_arquivo.
+
+    TRY.
+        OPEN DATASET m_arquivo FOR INPUT IN TEXT MODE ENCODING DEFAULT.
+      CATCH cx_sy_file_authority.
+        MESSAGE 'Sem autorização para acessar arquivo no servidor.'(m02) TYPE 'E'.
+        EXIT.
+    ENDTRY.
+    IF sy-subrc = 0.
+      MESSAGE 'Não foi possível abrir arquivo no servidor.'(m03) TYPE 'E'.
+      EXIT.
+    ENDIF.
+
+    DO.
+      CLEAR ls_arquivo.
+      READ DATASET m_arquivo INTO ls_arquivo.
+      IF sy-subrc <> 0.
+        EXIT.
+      ENDIF.
+      mt_arquivo = VALUE #( BASE mt_arquivo ( ls_arquivo ) ).
+    ENDDO.
+
+    CLOSE DATASET m_arquivo.
+  ENDMETHOD.
+
+  METHOD get_salesorder_details.
+    CONSTANTS:
+    lco_business_object TYPE bapiusw01-objtype VALUE 'BUS2032'.
+
+    DATA:
+    lt_return TYPE bapiret2tab.
+
+    CHECK i_salesdocument IS NOT INITIAL.
+
+    CALL FUNCTION 'BS01_SALESDOCUMENT_GETDETAIL'
+      EXPORTING
+        salesdocument        = i_salesdocument
+        business_object      = lco_business_object
+      TABLES
+        return               = lt_return
+        sales_schedule_lines = et_sales_schedule_lines
+        sales_conditions     = et_sales_conditions.
+
+*    DELETE et_sales_conditions WHERE cond_type <> co_cond_type.
+  ENDMETHOD.
+
+  METHOD altera_ov.
+    CONSTANTS:
+      lco_update TYPE bapicondx-updateflag VALUE 'U',
+      lco_insert TYPE bapicondx-updateflag VALUE 'I'.
+
+    DATA:
+      lt_conditions_in        TYPE STANDARD TABLE OF bapicond   WITH NON-UNIQUE DEFAULT KEY,
+      lt_conditions_inx       TYPE STANDARD TABLE OF bapicondx  WITH NON-UNIQUE DEFAULT KEY,
+      lt_sales_conditions     TYPE lty_t_bapisdcond,
+      lt_sales_schedule_lines TYPE lty_t_bapisdhedu,
+      ls_return               TYPE bapiret2,
+      lt_return               TYPE bapiret2tab,
+      lv_items                TYPE bapicond-cond_p_unt.
+
+    CHECK mt_arquivo IS NOT INITIAL.
+
+    DATA(ls_order_header_inx) = VALUE bapisdh1x( updateflag = lco_update ).
+
+    SORT mt_arquivo BY salesdocument itm_number cond_type.
+    LOOP AT mt_arquivo ASSIGNING FIELD-SYMBOL(<fs_arquivo>) GROUP BY <fs_arquivo>-salesdocument.
+      CLEAR: lt_conditions_in, lt_conditions_inx, lt_sales_conditions.
+
+      get_salesorder_details(
+        EXPORTING i_salesdocument         = <fs_arquivo>-salesdocument
+        IMPORTING et_sales_conditions     = lt_sales_conditions
+                  et_sales_schedule_lines = lt_sales_schedule_lines ).
+
+      LOOP AT GROUP <fs_arquivo> ASSIGNING FIELD-SYMBOL(<fs_item>).
+        CLEAR lv_items.
+        IF <fs_item>-itm_number IS INITIAL.
+          lv_items = REDUCE #(
+            INIT items = 0
+            FOR <fs_sales_schedule_lines> IN lt_sales_schedule_lines
+              NEXT items = items + <fs_sales_schedule_lines>-req_qty ).
+        ENDIF.
+
+        READ TABLE lt_sales_conditions WITH TABLE KEY ks_1 COMPONENTS
+          sd_doc     = <fs_arquivo>-salesdocument
+          itm_number = <fs_item>-itm_number
+          cond_type  = <fs_item>-cond_type
+          REFERENCE INTO DATA(lr_sales_conditions).
+        IF sy-subrc = 0.
+          lt_conditions_in = VALUE #( BASE lt_conditions_in
+            ( itm_number = lr_sales_conditions->itm_number
+              cond_st_no = lr_sales_conditions->cond_st_no
+              cond_count = lr_sales_conditions->cond_count
+              cond_type  = lr_sales_conditions->cond_type
+              cond_value = <fs_item>-cond_value
+              cond_p_unt = lv_items
+              currency   = co_brl ) ).
+          lt_conditions_inx = VALUE #( BASE lt_conditions_inx
+            ( itm_number = lr_sales_conditions->itm_number
+              cond_st_no = lr_sales_conditions->cond_st_no
+              cond_count = lr_sales_conditions->cond_count
+              cond_type  = lr_sales_conditions->cond_type
+              updateflag = lco_update
+              cond_value = abap_true
+              cond_p_unt = COND #( WHEN lv_items <> 0 THEN abap_true )
+              currency   = abap_true ) ).
+        ELSE.
+          lt_conditions_in = VALUE #( BASE lt_conditions_in
+            ( itm_number = <fs_item>-itm_number
+              cond_type  = <fs_item>-cond_type
+              cond_value = <fs_item>-cond_value
+              cond_p_unt = lv_items
+              currency   = co_brl ) ).
+          lt_conditions_inx = VALUE #( BASE lt_conditions_inx
+            ( itm_number = <fs_item>-itm_number
+              cond_type  = <fs_item>-cond_type
+              updateflag = lco_insert
+              cond_value = abap_true
+              cond_p_unt = COND #( WHEN lv_items <> 0 THEN abap_true )
+              currency   = abap_true ) ).
+        ENDIF.
+      ENDLOOP.
+
+      IF lt_conditions_inx IS NOT INITIAL.
+        CALL FUNCTION 'BAPI_SALESORDER_CHANGE'
+          EXPORTING
+            salesdocument    = <fs_arquivo>-salesdocument
+            order_header_inx = ls_order_header_inx
+          TABLES
+            return           = lt_return
+            conditions_in    = lt_conditions_in
+            conditions_inx   = lt_conditions_inx.
+
+        CALL FUNCTION 'BAPI_TRANSACTION_COMMIT'
+          IMPORTING
+            return = ls_return.
+      ENDIF.
+
+      update_log(
+        EXPORTING
+          i_salesorder = <fs_arquivo>-salesdocument
+          it_return    = lt_return ).
+      CLEAR lt_return.
+    ENDLOOP.
+  ENDMETHOD.
+  METHOD update_log.
+    LOOP AT it_return INTO DATA(ls_return).
+      ls_return-field = i_salesorder.
+      mt_return       = VALUE #( BASE mt_return ( ls_return ) ).
+    ENDLOOP.
+  ENDMETHOD.
+
+  METHOD exibe_log.
+    CONSTANTS:
+      BEGIN OF lco_type,
+        success TYPE bapiret2-type VALUE 'S',
+        warning TYPE bapiret2-type VALUE 'W',
+        error   TYPE bapiret2-type VALUE 'E',
+      END OF lco_type.
+
+    IF mt_return IS INITIAL.
+      WRITE '*** NENHUM REGISTRO PROCESSADO! *** '(m01).
+      EXIT.
+    ENDIF.
+
+    ULINE.
+    WRITE: / sy-vline, 3 'Status'(t01), 11 sy-vline, 13 'Ordem'(t02), 23 sy-vline, 24 'Mensagem'(t03), 180 sy-vline.
+    ULINE.
+
+    LOOP AT mt_return ASSIGNING FIELD-SYMBOL(<fs_return>).
+      WRITE: / sy-vline,
+               SWITCH #( <fs_return>-type
+                  WHEN lco_type-success THEN icon_led_green
+                  WHEN lco_type-warning THEN icon_led_yellow
+                  WHEN lco_type-error   THEN icon_led_red ) AS ICON UNDER TEXT-t01, 11  sy-vline,
+               <fs_return>-field(10)     UNDER TEXT-t02, 23  sy-vline,
+               <fs_return>-message(180)  UNDER TEXT-t03, 180 sy-vline.
+    ENDLOOP.
+    ULINE.
+  ENDMETHOD.
+ENDCLASS.
