@@ -1,0 +1,175 @@
+*&---------------------------------------------------------------------*
+*& Report ZPSD_REENVIA_OV_MAGENTO
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zpsd_reenvia_ov_magento LINE-SIZE 180.
+
+TYPES:
+  lty_r_ihrez    TYPE RANGE OF ztbsd043-ihrez,
+  lty_t_ztbsd043 TYPE STANDARD TABLE OF ztbsd043
+    WITH NON-UNIQUE DEFAULT KEY
+    WITH NON-UNIQUE SORTED KEY ks_1 COMPONENTS ihrez.
+
+DATA gv_ihrez TYPE ztbsd043-ihrez.
+
+CLASS lcl_relatorio DEFINITION CREATE PRIVATE.
+  PUBLIC SECTION.
+    CLASS-METHODS:
+      get_instance IMPORTING ir_ihrez          TYPE lty_r_ihrez
+                   RETURNING VALUE(r_instance) TYPE REF TO lcl_relatorio.
+
+    METHODS:
+      constructor IMPORTING ir_ihrez TYPE lty_r_ihrez,
+      executa,
+      exibe_relatorio.
+
+  PRIVATE SECTION.
+    CONSTANTS:
+      BEGIN OF co_type,
+        sucesso TYPE bapiret2-type VALUE 'S',
+        erro    TYPE bapiret2-type VALUE 'E',
+        aviso   TYPE bapiret2-type VALUE 'W',
+      END OF co_type,
+
+      BEGIN OF co_res,
+        sucesso TYPE zcl_sisdt_cria_ov_sis_res_resu-result VALUE 'SUCESSO',
+        erro    TYPE zcl_sisdt_cria_ov_sis_res_resu-result VALUE 'ERRO',
+        aviso   TYPE zcl_sisdt_cria_ov_sis_res_resu-result VALUE 'WARN',
+      END OF co_res.
+
+    CLASS-DATA:
+      m_instance TYPE REF TO lcl_relatorio.
+
+    DATA:
+      mr_ihrez    TYPE lty_r_ihrez,
+      mt_ztbsd043 TYPE lty_t_ztbsd043,
+      mt_retorno  TYPE bapiret2tab.
+
+    METHODS:
+      seleciona_dados,
+      processa_dados,
+      update_log IMPORTING i_chave   TYPE bapiret2-field
+                           i_campo   TYPE string
+                           ir_result TYPE REF TO data,
+      campo_existe IMPORTING i_campo          TYPE string
+                             ir_tabela        TYPE REF TO data
+                   RETURNING VALUE(r_retorno) TYPE abap_bool.
+ENDCLASS.
+
+
+SELECTION-SCREEN BEGIN OF BLOCK bl01.
+SELECT-OPTIONS: s_ihrez FOR gv_ihrez OBLIGATORY.
+SELECTION-SCREEN END OF BLOCK bl01.
+
+START-OF-SELECTION.
+  DATA(lr_report) = lcl_relatorio=>get_instance( s_ihrez[] ).
+
+  lr_report->executa( ).
+  lr_report->exibe_relatorio( ).
+
+
+CLASS lcl_relatorio IMPLEMENTATION.
+  METHOD get_instance.
+    IF m_instance IS NOT BOUND.
+      m_instance = NEW #( ir_ihrez ).
+    ENDIF.
+    r_instance = m_instance.
+  ENDMETHOD.
+
+  METHOD constructor.
+    mr_ihrez = ir_ihrez.
+  ENDMETHOD.
+
+  METHOD seleciona_dados.
+    SELECT *
+      FROM ztbsd043
+      INTO TABLE @mt_ztbsd043
+      WHERE ihrez IN @mr_ihrez.
+  ENDMETHOD.
+
+  METHOD processa_dados.
+    DATA(lr_proxy) = NEW zcl_sisco_si_s_cria_ov_sis_out( ).
+
+    LOOP AT mt_ztbsd043 ASSIGNING FIELD-SYMBOL(<fs_ztbsd043>).
+      TRY.
+          lr_proxy->si_s_cria_ov_sis_out(
+            EXPORTING output = VALUE #( mt_cria_ov_sis_req-ordem-carrinho = <fs_ztbsd043>-xml )
+            IMPORTING input  = DATA(lt_input) ).
+        CATCH cx_ai_system_fault.
+          lt_input-mt_cria_ov_sis_res-resultados-resultado = VALUE #( ( result = 'Erro ao enviar encomenda ao SIS.'(m04) ) ).
+      ENDTRY.
+
+      update_log( i_chave   = CONV #( <fs_ztbsd043>-ihrez )
+                  i_campo   = 'RESULT'
+                  ir_result = REF #( lt_input-mt_cria_ov_sis_res-resultados-resultado ) ).
+    ENDLOOP.
+  ENDMETHOD.
+
+  METHOD campo_existe.
+    DATA(components) = CAST cl_abap_structdescr(
+      CAST cl_abap_tabledescr(
+      cl_abap_tabledescr=>describe_by_data_ref( ir_tabela ) )->get_table_line_type( ) )->components.
+
+    r_retorno = COND #(
+      WHEN line_exists( components[ name = i_campo ] ) THEN abap_true
+      ELSE abap_false ).
+  ENDMETHOD.
+
+  METHOD update_log.
+    DATA ls_retorno LIKE LINE OF mt_retorno.
+    FIELD-SYMBOLS <fs_table> TYPE ANY TABLE.
+
+    CHECK campo_existe( i_campo = i_campo ir_tabela = ir_result ).
+
+    ASSIGN ir_result->* TO <fs_table>.
+
+    LOOP AT <fs_table> ASSIGNING FIELD-SYMBOL(<fs_line>).
+      ASSIGN COMPONENT i_campo OF STRUCTURE <fs_line> TO FIELD-SYMBOL(<fs_campo>).
+
+      ls_retorno-field   = i_chave.
+      ls_retorno-message = <fs_campo>.
+
+      FIND co_res-sucesso IN to_upper( <fs_campo> ).
+      IF sy-subrc = 0.
+        ls_retorno-type = co_type-sucesso.
+        ls_retorno-message = 'OV criada com sucesso no SIS'(m01).
+      ELSE.
+        FIND co_res-erro IN to_upper( <fs_campo> ).
+        IF sy-subrc = 0.
+          ls_retorno-type = co_type-erro.
+        ELSE.
+          ls_retorno-type = co_type-aviso.
+        ENDIF.
+      ENDIF.
+      mt_retorno = VALUE #( BASE mt_retorno ( ls_retorno ) ).
+    ENDLOOP.
+  ENDMETHOD.
+
+  METHOD executa.
+    seleciona_dados( ).
+    processa_dados( ).
+  ENDMETHOD.
+
+  METHOD exibe_relatorio.
+    IF mt_retorno IS INITIAL.
+      WRITE '*** NENHUM REGISTRO PROCESSADO! *** '(m02).
+      EXIT.
+    ENDIF.
+
+    ULINE.
+    WRITE: / sy-vline, 3 'Status'(t01), 11 sy-vline, 13 'Ordem Venda'(t02), 25 sy-vline, 27 'Mensagem'(t03), 180 sy-vline.
+    ULINE.
+
+    LOOP AT mt_retorno ASSIGNING FIELD-SYMBOL(<fs_return>).
+      WRITE: / sy-vline,
+               SWITCH #( <fs_return>-type
+                  WHEN co_type-sucesso THEN icon_led_green
+                  WHEN co_type-aviso   THEN icon_led_yellow
+                  WHEN co_type-erro    THEN icon_led_red ) AS ICON UNDER TEXT-t01, 11  sy-vline,
+               <fs_return>-field(10)     UNDER TEXT-t02 CENTERED, 25  sy-vline,
+               <fs_return>-message(178)  UNDER TEXT-t03, 180 sy-vline.
+    ENDLOOP.
+    ULINE.
+  ENDMETHOD.
+ENDCLASS.
