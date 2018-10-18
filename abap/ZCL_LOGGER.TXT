@@ -1,0 +1,213 @@
+class ZCL_LOGGER definition
+  public
+  final
+  create private .
+
+public section.
+
+  interfaces ZIF_LOGGER .
+
+  aliases CONVERTE_RANGE_ITAB
+    for ZIF_LOGGER~CONVERTE_RANGE_ITAB .
+  aliases EXIBE_MENSAGENS
+    for ZIF_LOGGER~EXIBE_MENSAGENS .
+  aliases EXPORTA_MENSAGENS
+    for ZIF_LOGGER~EXPORTA_MENSAGENS .
+  aliases RECUPERA_MENSAGENS
+    for ZIF_LOGGER~RECUPERA_MENSAGENS .
+  aliases TY_M_LOG
+    for ZIF_LOGGER~TY_M_LOG .
+  aliases TY_R_EXTNUMBER
+    for ZIF_LOGGER~TY_R_EXTNUMBER .
+  aliases TY_S_MSGTXT
+    for ZIF_LOGGER~TY_S_MSGTXT .
+  aliases TY_T_EXTNUMBER
+    for ZIF_LOGGER~TY_T_EXTNUMBER .
+  aliases TY_T_LOG
+    for ZIF_LOGGER~TY_T_LOG .
+  aliases TY_T_MESSAGE
+    for ZIF_LOGGER~TY_T_MESSAGE .
+
+  class-methods GET_INSTANCE
+    returning
+      value(R_INSTANCE) type ref to ZCL_LOGGER .
+protected section.
+private section.
+
+  aliases TY_S_LOG
+    for ZIF_LOGGER~TY_S_LOG .
+  aliases TY_T_HEADER
+    for ZIF_LOGGER~TY_T_HEADER .
+
+  class-data M_INSTANCE type ref to ZCL_LOGGER .
+  data M_OBJECT type BALHDR-OBJECT .
+  data M_SUBOBJECT type BALHDR-SUBOBJECT .
+  data MT_EXTNUMBER type TY_T_EXTNUMBER .
+  data M_DT_INI type D .
+  data M_DT_FIM type D .
+  data MM_LOG type TY_M_LOG .
+
+  methods CONSTRUCTOR .
+  methods MONTA_TEXTO_MENSAGEM
+    importing
+      !IT_MESSAGE type ZIF_LOGGER=>TY_T_MESSAGE
+    returning
+      value(RT_MSGTXT) type ZIF_LOGGER=>TY_T_MSGTXT .
+ENDCLASS.
+
+
+
+CLASS ZCL_LOGGER IMPLEMENTATION.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Private Method ZCL_LOGGER->CONSTRUCTOR
+* +-------------------------------------------------------------------------------------------------+
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  method CONSTRUCTOR.
+  endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Static Public Method ZCL_LOGGER=>GET_INSTANCE
+* +-------------------------------------------------------------------------------------------------+
+* | [<-()] R_INSTANCE                     TYPE REF TO ZCL_LOGGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD get_instance.
+    IF m_instance IS INITIAL.
+      m_instance = NEW #( ).
+    ENDIF.
+    r_instance = m_instance.
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Private Method ZCL_LOGGER->MONTA_TEXTO_MENSAGEM
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] IT_MESSAGE                     TYPE        ZIF_LOGGER=>TY_T_MESSAGE
+* | [<-()] RT_MSGTXT                      TYPE        ZIF_LOGGER=>TY_T_MSGTXT
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD monta_texto_mensagem.
+    LOOP AT it_message ASSIGNING FIELD-SYMBOL(<fs_message>).
+      APPEND INITIAL LINE TO rt_msgtxt REFERENCE INTO DATA(lr_msgtxt).
+      lr_msgtxt->lognumber = <fs_message>-lognumber.
+      lr_msgtxt->msgnumber = <fs_message>-msgnumber.
+
+      CALL FUNCTION 'MESSAGE_TEXT_BUILD'
+        EXPORTING
+          msgid               = <fs_message>-msgid
+          msgnr               = <fs_message>-msgno
+          msgv1               = <fs_message>-msgv1
+          msgv2               = <fs_message>-msgv2
+          msgv3               = <fs_message>-msgv3
+          msgv4               = <fs_message>-msgv4
+        IMPORTING
+          message_text_output = lr_msgtxt->msgtxt.
+
+      REPLACE ALL OCCURRENCES OF REGEX '\&\d' IN lr_msgtxt->msgtxt WITH space.
+    ENDLOOP.
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method ZCL_LOGGER->ZIF_LOGGER~CONVERTE_RANGE_ITAB
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] IT_EXTNUMBER                   TYPE        TY_R_EXTNUMBER
+* | [<-()] RT_EXTNUMBER                   TYPE        TY_T_EXTNUMBER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD zif_logger~converte_range_itab.
+    CLEAR rt_extnumber.
+
+    LOOP AT it_extnumber ASSIGNING FIELD-SYMBOL(<fs_extnumber>) WHERE sign = 'I'.
+      CASE <fs_extnumber>-option.
+        WHEN 'EQ'.
+          rt_extnumber = VALUE #( BASE rt_extnumber ( <fs_extnumber>-low ) ).
+      ENDCASE.
+    ENDLOOP.
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method ZCL_LOGGER->ZIF_LOGGER~EXPORTA_MENSAGENS
+* +-------------------------------------------------------------------------------------------------+
+* | [<---] ET_MESH                        TYPE        TY_M_LOG
+* | [<-()] RT_TABELA                      TYPE        TY_T_LOG
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD zif_logger~exporta_mensagens.
+    LOOP AT mm_log-message ASSIGNING FIELD-SYMBOL(<fs_message>).
+      ASSIGN mm_log-message\message_to_header[ mm_log-message[ lognumber = <fs_message>-lognumber ] ]
+        TO FIELD-SYMBOL(<fs_header>).
+
+      ASSIGN mm_log-message\message_to_msgtxt[
+        mm_log-message[ lognumber = <fs_message>-lognumber msgnumber = <fs_message>-msgnumber ] ]
+        TO FIELD-SYMBOL(<fs_msgtxt>).
+
+      rt_tabela = value #( base rt_tabela
+        ( object    = <fs_header>-object
+          subobject = <fs_header>-subobject
+          extnumber = <fs_header>-extnumber
+          aldate    = <fs_header>-aldate
+          altime    = <fs_header>-altime
+          aluser    = <fs_header>-aluser
+          alprog    = <fs_header>-alprog
+          msgty     = <fs_message>-msgty
+          msgtxt    = <fs_msgtxt>-msgtxt ) ).
+    ENDLOOP.
+
+    et_mesh = mm_log.
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method ZCL_LOGGER->ZIF_LOGGER~RECUPERA_MENSAGENS
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] I_OBJECT                       TYPE        BALHDR-OBJECT
+* | [--->] I_SUBOBJECT                    TYPE        BALHDR-SUBOBJECT
+* | [--->] IT_EXTNUMBER                   TYPE        TY_T_EXTNUMBER
+* | [--->] I_DT_INI                       TYPE        D
+* | [--->] I_DT_FIM                       TYPE        D
+* | [<-()] RT_LOG                         TYPE        TY_M_LOG
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD zif_logger~recupera_mensagens.
+    CONSTANTS:
+      co_timeto   TYPE t VALUE '000000',
+      co_timefrom TYPE t VALUE '235959'.
+
+    DATA:
+      lt_header    LIKE rt_log-header,
+      lt_message   LIKE rt_log-message,
+      lt_extnumber LIKE it_extnumber.
+
+    CHECK i_dt_ini IS NOT INITIAL
+      AND i_dt_fim IS NOT INITIAL.
+
+    CLEAR mm_log.
+
+    lt_extnumber = it_extnumber.
+    IF lt_extnumber IS INITIAL.
+      lt_extnumber = VALUE #( ( '*' ) ).
+    ENDIF.
+
+    LOOP AT lt_extnumber ASSIGNING FIELD-SYMBOL(<fs_extnumber>).
+      CLEAR: lt_header, lt_message.
+      CALL FUNCTION 'APPL_LOG_READ_DB'
+        EXPORTING
+          object          = COND balhdr-object( WHEN i_object IS INITIAL THEN '*' ELSE i_object )
+          subobject       = COND balhdr-subobject( WHEN i_subobject IS INITIAL THEN '*' ELSE i_subobject )
+          external_number = <fs_extnumber>
+          date_from       = i_dt_ini
+          date_to         = i_dt_fim
+          time_from       = co_timefrom
+          time_to         = co_timeto
+        TABLES
+          header_data     = lt_header
+          messages        = lt_message.
+
+      mm_log-header  = VALUE #( BASE mm_log-header  ( LINES OF lt_header ) ).
+      mm_log-message = VALUE #( BASE mm_log-message ( LINES OF lt_message ) ).
+    ENDLOOP.
+
+    mm_log-msgtxt = VALUE #( ( LINES OF monta_texto_mensagem( mm_log-message ) ) ).
+    rt_log = mm_log.
+  ENDMETHOD.
+ENDCLASS.

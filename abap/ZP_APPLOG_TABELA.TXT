@@ -1,0 +1,157 @@
+*&---------------------------------------------------------------------*
+*& Report ZP_APPLOG_TABELA
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zp_applog_tabela.
+
+TABLES: balhdr.
+
+TYPES:
+  ty_r_extnumber TYPE RANGE OF balhdr-extnumber.
+
+CLASS lcl_report DEFINITION CREATE PRIVATE.
+  PUBLIC SECTION.
+    CLASS-METHODS:
+      get_instance
+        IMPORTING i_object          TYPE balhdr-object
+                  i_subobject       TYPE balhdr-subobject
+                  it_extnumber      TYPE ty_r_extnumber
+                  i_dt_ini          TYPE d
+                  i_dt_fim          TYPE d
+        RETURNING VALUE(r_instance) TYPE REF TO lcl_report,
+      restringe_sel_opt.
+
+    METHODS:
+      executa.
+
+  PRIVATE SECTION.
+    TYPES:
+      lty_t_relatorio TYPE STANDARD TABLE OF zemessage
+        WITH NON-UNIQUE KEY object subobject extnumber.
+
+    CLASS-DATA:
+      m_instance   TYPE REF TO lcl_report,
+      m_logger     TYPE REF TO zif_logger,
+      m_object     TYPE balhdr-object,
+      m_subobject  TYPE balhdr-subobject,
+      mt_extnumber TYPE ty_r_extnumber,
+      m_dt_ini     TYPE d,
+      m_dt_fim     TYPE d,
+      mt_relatorio TYPE lty_t_relatorio.
+
+    METHODS:
+      constructor
+        IMPORTING i_object     TYPE balhdr-object
+                  i_subobject  TYPE balhdr-subobject
+                  it_extnumber TYPE ty_r_extnumber
+                  i_dt_ini     TYPE d
+                  i_dt_fim     TYPE d,
+      seleciona_dados,
+      processa_dados,
+      exibe_dados.
+ENDCLASS.
+
+SELECTION-SCREEN BEGIN OF BLOCK bl1 WITH FRAME TITLE TEXT-t01.
+PARAMETERS: p_obj TYPE balhdr-object,
+            p_sub TYPE balhdr-subobject.
+SELECT-OPTIONS s_extn FOR balhdr-extnumber NO INTERVALS.
+SELECTION-SCREEN END OF BLOCK bl1.
+SELECTION-SCREEN BEGIN OF BLOCK bl2 WITH FRAME TITLE TEXT-t02.
+PARAMETERS: p_dt_ini TYPE balhdr-aldate OBLIGATORY DEFAULT sy-datum,
+            p_dt_fim TYPE balhdr-aldate OBLIGATORY DEFAULT sy-datum.
+SELECTION-SCREEN END OF BLOCK bl2.
+
+START-OF-SELECTION.
+  DATA(gr_report) = lcl_report=>get_instance(
+                      i_object     = p_obj
+                      i_subobject  = p_sub
+                      it_extnumber = s_extn[]
+                      i_dt_ini     = p_dt_ini
+                      i_dt_fim     = p_dt_fim ).
+
+  gr_report->executa( ).
+
+INITIALIZATION.
+  lcl_report=>restringe_sel_opt( ).
+
+CLASS lcl_report IMPLEMENTATION.
+  METHOD get_instance.
+    IF m_instance IS INITIAL.
+      m_instance = NEW #(
+        i_object     = i_object
+        i_subobject  = i_subobject
+        it_extnumber = it_extnumber
+        i_dt_ini     = i_dt_ini
+        i_dt_fim     = i_dt_fim ).
+    ENDIF.
+    r_instance = m_instance.
+  ENDMETHOD.
+
+  METHOD constructor.
+    m_object     = i_object.
+    m_subobject  = i_subobject.
+    mt_extnumber = it_extnumber.
+    m_dt_ini     = i_dt_ini.
+    m_dt_fim     = i_dt_fim.
+
+    m_logger     = zcl_logger=>get_instance( ).
+  ENDMETHOD.
+
+  METHOD restringe_sel_opt.
+    DATA(restrict) = VALUE sscr_restrict(
+      opt_list_tab = VALUE #( (
+        name = 'OBJECTKEY1' options-eq = abap_true ) )
+      ass_tab = VALUE #( (
+        kind = 'S' name = 'S_EXTN' sg_main = 'I' sg_addy = space
+        op_main = 'OBJECTKEY1' ) ) ).
+
+    CALL FUNCTION 'SELECT_OPTIONS_RESTRICT'
+      EXPORTING
+        restriction            = restrict
+      EXCEPTIONS
+        too_late               = 1
+        repeated               = 2
+        selopt_without_options = 3
+        selopt_without_signs   = 4
+        invalid_sign           = 5
+        empty_option_list      = 6
+        invalid_kind           = 7
+        repeated_kind_a        = 8
+        OTHERS                 = 9.
+    IF sy-subrc <> 0.
+* Implement suitable error handling here
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD executa.
+    seleciona_dados( ).
+    processa_dados( ).
+    exibe_dados( ).
+  ENDMETHOD.
+
+  METHOD seleciona_dados.
+    m_logger->recupera_mensagens(
+      EXPORTING
+        i_object     = m_object
+        i_subobject  = m_subobject
+        it_extnumber = m_logger->converte_range_itab( mt_extnumber )
+        i_dt_ini     = m_dt_ini
+        i_dt_fim     = m_dt_fim ).
+  ENDMETHOD.
+
+  METHOD processa_dados.
+    DATA(mt_relatorio) = CORRESPONDING lty_t_relatorio( m_logger->exporta_mensagens( ) ).
+  ENDMETHOD.
+
+  METHOD exibe_dados.
+    TRY.
+        cl_salv_table=>factory(
+          IMPORTING r_salv_table = DATA(lr_alv)
+          CHANGING  t_table      = mt_relatorio ).
+      CATCH cx_salv_msg.
+    ENDTRY.
+
+    lr_alv->display( ).
+  ENDMETHOD.
+ENDCLASS.

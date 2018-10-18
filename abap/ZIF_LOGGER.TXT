@@ -1,0 +1,79 @@
+interface ZIF_LOGGER
+  public .
+
+
+  types:
+    ty_t_header  TYPE STANDARD TABLE OF balhdr
+      WITH NON-UNIQUE KEY lognumber
+      WITH NON-UNIQUE SORTED KEY ks_1 COMPONENTS lognumber .
+  types:
+    ty_t_message TYPE STANDARD TABLE OF balm
+      WITH NON-UNIQUE KEY lognumber msgnumber
+      WITH NON-UNIQUE SORTED KEY ks_1 COMPONENTS lognumber .
+  types:
+    BEGIN OF ty_s_msgtxt,
+      lognumber TYPE balm-lognumber,
+      msgnumber TYPE balm-msgnumber,
+      msgtxt    TYPE c LENGTH 100,
+    END OF ty_s_msgtxt .
+  types:
+    ty_t_msgtxt TYPE STANDARD TABLE OF ty_s_msgtxt
+      WITH NON-UNIQUE KEY lognumber msgnumber
+      WITH NON-UNIQUE SORTED KEY ks_1 COMPONENTS lognumber msgnumber .
+  types:
+    BEGIN OF MESH ty_m_log,
+      header  TYPE ty_t_header
+        ASSOCIATION header_to_message TO message ON lognumber = lognumber USING KEY ks_1,
+      message TYPE ty_t_message
+        ASSOCIATION message_to_header TO header ON lognumber = lognumber USING KEY ks_1
+        ASSOCIATION message_to_msgtxt TO msgtxt
+          ON  lognumber = lognumber
+          AND msgnumber = msgnumber USING KEY ks_1,
+      msgtxt  TYPE ty_t_msgtxt
+        ASSOCIATION msgtxt_to_message TO message
+        ON lognumber = lognumber AND msgnumber = msgnumber USING KEY ks_1,
+    END OF MESH ty_m_log .
+  types:
+    ty_t_extnumber TYPE STANDARD TABLE OF balhdr-extnumber
+      WITH NON-UNIQUE DEFAULT KEY .
+  types:
+    ty_r_extnumber TYPE RANGE OF balhdr-extnumber .
+  types:
+    BEGIN OF ty_s_log,
+      object    TYPE balhdr-object,
+      subobject TYPE balhdr-subobject,
+      extnumber TYPE balhdr-extnumber,
+      aldate    TYPE balhdr-aldate,
+      altime    TYPE balhdr-altime,
+      aluser    TYPE balhdr-aluser,
+      alprog    TYPE balhdr-alprog,
+      msgty     TYPE balm-msgty,
+      msgtxt    TYPE c LENGTH 100,
+    END OF ty_s_log .
+  types:
+    ty_t_log TYPE STANDARD TABLE OF ty_s_log
+      WITH NON-UNIQUE KEY object subobject extnumber
+      WITH NON-UNIQUE SORTED KEY ks_datetime
+        COMPONENTS object subobject extnumber aldate altime .
+
+  methods RECUPERA_MENSAGENS
+    importing
+      !I_OBJECT type BALHDR-OBJECT
+      !I_SUBOBJECT type BALHDR-SUBOBJECT
+      !IT_EXTNUMBER type TY_T_EXTNUMBER
+      !I_DT_INI type D
+      !I_DT_FIM type D
+    returning
+      value(RT_LOG) type TY_M_LOG .
+  methods EXPORTA_MENSAGENS
+    exporting
+      !ET_MESH type TY_M_LOG
+    returning
+      value(RT_TABELA) type TY_T_LOG .
+  methods EXIBE_MENSAGENS .
+  methods CONVERTE_RANGE_ITAB
+    importing
+      !IT_EXTNUMBER type TY_R_EXTNUMBER
+    returning
+      value(RT_EXTNUMBER) type TY_T_EXTNUMBER .
+endinterface.

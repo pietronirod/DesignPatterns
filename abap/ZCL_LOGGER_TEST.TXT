@@ -1,0 +1,103 @@
+*"* use this source file for your ABAP unit test classes
+CLASS lcl_tester DEFINITION FOR TESTING
+  RISK LEVEL HARMLESS
+  DURATION SHORT.
+
+  PUBLIC SECTION.
+    METHODS:
+      recupera_extnumber_vazio    FOR TESTING,
+      recupera_extnumber_invalido FOR TESTING,
+      recupera_um_extnumber       FOR TESTING,
+      recupera_multi_extnumber    FOR TESTING,
+      recupera_por_data           FOR TESTING,
+      exporta_resultado           FOR TESTING,
+      exporta_resultado_em_branco FOR TESTING.
+
+  PRIVATE SECTION.
+    CONSTANTS:
+      co_object    TYPE balhdr-object    VALUE 'INTERFACES',
+      co_subobject TYPE balhdr-subobject VALUE 'BUS_002',
+      co_dt_ini    TYPE d                VALUE '20181016',
+      co_dt_fim    TYPE d                VALUE '20181018'.
+
+    CLASS-DATA:
+      m_cut        TYPE REF TO zif_logger,
+      mt_extnumber TYPE zif_logger=>ty_t_extnumber.
+
+    CLASS-METHODS:
+      class_setup.
+
+    METHODS:
+      executa RETURNING VALUE(r_log) TYPE zif_logger=>ty_m_log.
+ENDCLASS.
+
+CLASS lcl_tester IMPLEMENTATION.
+  METHOD class_setup.
+    m_cut = zcl_logger=>get_instance( ).
+  ENDMETHOD.
+
+  METHOD executa.
+    r_log = m_cut->recupera_mensagens(
+        i_object     = co_object
+        i_subobject  = co_subobject
+        it_extnumber = mt_extnumber
+        i_dt_ini     = co_dt_ini
+        i_dt_fim     = co_dt_fim ).
+  ENDMETHOD.
+
+  METHOD exporta_resultado_em_branco.
+    CLEAR mt_extnumber.
+
+    m_cut->recupera_mensagens(
+      i_object     = ''
+      i_subobject  = ''
+      it_extnumber = mt_extnumber
+      i_dt_ini     = '01011900'
+      i_dt_fim     = '01011900' ).
+
+    cl_abap_unit_assert=>assert_initial( m_cut->exporta_mensagens( ) ).
+  ENDMETHOD.
+
+  METHOD recupera_por_data.
+    CLEAR mt_extnumber.
+
+    cl_abap_unit_assert=>assert_not_initial(
+      m_cut->recupera_mensagens(
+        i_object     = ''
+        i_subobject  = ''
+        it_extnumber = mt_extnumber
+        i_dt_ini     = co_dt_ini
+        i_dt_fim     = co_dt_fim ) ).
+  ENDMETHOD.
+  METHOD recupera_extnumber_vazio.
+    CLEAR mt_extnumber.
+
+    cl_abap_unit_assert=>assert_not_initial( executa( ) ).
+  ENDMETHOD.
+
+  METHOD recupera_extnumber_invalido.
+    mt_extnumber = VALUE #( ( ) ).
+    cl_abap_unit_assert=>assert_not_initial( executa( ) ).
+  ENDMETHOD.
+
+  METHOD recupera_um_extnumber.
+    mt_extnumber = VALUE #( ( '094666' ) ).
+    cl_abap_unit_assert=>assert_not_initial( executa( ) ).
+  ENDMETHOD.
+
+  METHOD recupera_multi_extnumber.
+    mt_extnumber = VALUE #(
+     ( '094666' )
+     ( '874411133' ) ).
+    cl_abap_unit_assert=>assert_not_initial( executa( ) ).
+  ENDMETHOD.
+
+  METHOD exporta_resultado.
+    mt_extnumber = VALUE #(
+      ( '094666' )
+      ( '874411133' ) ).
+
+    executa( ).
+    cl_abap_unit_assert=>assert_not_initial( m_cut->exporta_mensagens( ) ).
+  ENDMETHOD.
+ENDCLASS.
