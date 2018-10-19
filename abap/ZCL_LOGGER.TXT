@@ -135,11 +135,10 @@ CLASS ZCL_LOGGER IMPLEMENTATION.
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD zif_logger~exporta_mensagens.
     LOOP AT mm_log-message ASSIGNING FIELD-SYMBOL(<fs_message>).
-      ASSIGN mm_log-message\message_to_header[ mm_log-message[ lognumber = <fs_message>-lognumber ] ]
+      ASSIGN mm_log-message\message_to_header[ <fs_message> ]
         TO FIELD-SYMBOL(<fs_header>).
 
-      ASSIGN mm_log-message\message_to_msgtxt[
-        mm_log-message[ lognumber = <fs_message>-lognumber msgnumber = <fs_message>-msgnumber ] ]
+      ASSIGN mm_log-message\message_to_msgtxt[ <fs_message> ]
         TO FIELD-SYMBOL(<fs_msgtxt>).
 
       rt_tabela = value #( base rt_tabela

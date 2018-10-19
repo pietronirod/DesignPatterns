@@ -49,7 +49,8 @@ CLASS lcl_report DEFINITION CREATE PRIVATE.
                   i_dt_fim     TYPE d,
       seleciona_dados,
       processa_dados,
-      exibe_dados.
+      exibe_dados,
+      formata_colunas CHANGING cr_colunas TYPE REF TO cl_salv_columns_table.
 ENDCLASS.
 
 SELECTION-SCREEN BEGIN OF BLOCK bl1 WITH FRAME TITLE TEXT-t01.
@@ -127,6 +128,10 @@ CLASS lcl_report IMPLEMENTATION.
   METHOD executa.
     seleciona_dados( ).
     processa_dados( ).
+    IF mt_relatorio IS INITIAL.
+      MESSAGE 'Nenhum registro selecionado.'(m01) TYPE 'I' DISPLAY LIKE 'E'.
+      EXIT.
+    ENDIF.
     exibe_dados( ).
   ENDMETHOD.
 
@@ -141,7 +146,12 @@ CLASS lcl_report IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD processa_dados.
-    DATA(mt_relatorio) = CORRESPONDING lty_t_relatorio( m_logger->exporta_mensagens( ) ).
+    mt_relatorio = CORRESPONDING lty_t_relatorio( m_logger->exporta_mensagens( ) ).
+
+    MODIFY: mt_relatorio FROM VALUE #( icone = icon_led_green )  TRANSPORTING icone WHERE msgty = 'S',
+            mt_relatorio FROM VALUE #( icone = icon_led_yellow ) TRANSPORTING icone WHERE msgty = 'I',
+            mt_relatorio FROM VALUE #( icone = icon_led_yellow ) TRANSPORTING icone WHERE msgty = 'W',
+            mt_relatorio FROM VALUE #( icone = icon_led_red )    TRANSPORTING icone WHERE msgty = 'E'.
   ENDMETHOD.
 
   METHOD exibe_dados.
@@ -152,6 +162,29 @@ CLASS lcl_report IMPLEMENTATION.
       CATCH cx_salv_msg.
     ENDTRY.
 
+    DATA(lr_colunas) = lr_alv->get_columns( ).
+    formata_colunas( CHANGING cr_colunas = lr_colunas ).
+
+    lr_alv->get_functions( )->set_all( abap_true ).
     lr_alv->display( ).
+  ENDMETHOD.
+
+  METHOD formata_colunas.
+    CONSTANTS:
+      co_icone  TYPE lvc_fname VALUE 'ICONE',
+      co_msgtxt TYPE lvc_fname VALUE 'MSGTXT',
+      co_msgty  TYPE lvc_fname VALUE 'MSGTY'.
+
+    cr_colunas->set_optimize( abap_true ).
+
+    DATA(lr_coluna) = CAST cl_salv_column_table( cr_colunas->get_column( co_icone ) ).
+    lr_coluna->set_long_text( 'Status'(c01) ).
+
+    lr_coluna = CAST cl_salv_column_table( cr_colunas->get_column( co_msgtxt ) ).
+    lr_coluna->set_long_text( 'Descrição'(c02) ).
+
+    lr_coluna = CAST cl_salv_column_table( cr_colunas->get_column( co_msgty ) ).
+    lr_coluna->set_visible( abap_false ).
+
   ENDMETHOD.
 ENDCLASS.
