@@ -1,0 +1,434 @@
+*&---------------------------------------------------------------------*
+*& Report ZPSD_LIBERAR_OV
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zpsd_cria_rem_sto LINE-SIZE 180.
+
+TABLES: ekko, eket.
+
+CONSTANTS:
+  gc_a00 TYPE screen-group1 VALUE 'A00',
+  gc_a01 TYPE screen-group1 VALUE 'A01',
+  gc_a02 TYPE screen-group1 VALUE 'A02'.
+
+CLASS lcl_criacao DEFINITION CREATE PRIVATE.
+  PUBLIC SECTION.
+    CONSTANTS:
+      BEGIN OF co_acao,
+        salva    TYPE c LENGTH 1 VALUE 'S',
+        processa TYPE c LENGTH 1 VALUE 'P',
+      END OF co_acao.
+
+    CLASS-METHODS:
+      get_instance
+        IMPORTING i_arquivo         TYPE string
+                  i_manual          TYPE abap_bool
+        RETURNING VALUE(r_instance) TYPE REF TO lcl_criacao,
+      abre_arquivo_local CHANGING c_arquivo TYPE rlgrap-filename.
+
+    METHODS:
+      importa_arquivo_local,
+      executa
+        IMPORTING i_acao      LIKE co_acao-salva
+                  i_simulacao TYPE abap_bool,
+      exibe_log.
+
+  PRIVATE SECTION.
+    CONSTANTS:
+      co_separador TYPE c LENGTH 1 VALUE ';'.
+
+    TYPES:
+      BEGIN OF lty_s_txt,
+        texto TYPE c LENGTH 400,
+      END OF lty_s_txt,
+      BEGIN OF lty_s_ekpo,
+        ebeln TYPE ekpo-ebeln,
+        ebelp TYPE ekpo-ebelp,
+        menge TYPE ekpo-menge,
+        meins TYPE ekpo-meins,
+      END OF lty_s_ekpo,
+      BEGIN OF lty_s_eket,
+        ebeln   TYPE eket-ebeln,
+        ebelp   TYPE eket-ebelp,
+        calculo TYPE eket-menge,
+      END OF lty_s_eket,
+
+      lty_t_txt      TYPE STANDARD TABLE OF lty_s_txt WITH NON-UNIQUE DEFAULT KEY,
+      lty_t_arquivo  TYPE STANDARD TABLE OF ztbsd070
+        WITH NON-UNIQUE DEFAULT KEY
+        WITH NON-UNIQUE SORTED KEY ks_1 COMPONENTS ebeln ebelp,
+      lty_t_ekpo     TYPE STANDARD TABLE OF lty_s_ekpo
+        WITH NON-UNIQUE DEFAULT KEY
+        WITH NON-UNIQUE SORTED KEY ks_1 COMPONENTS ebeln ebelp,
+      lty_t_eket     TYPE STANDARD TABLE OF lty_s_eket
+        WITH NON-UNIQUE KEY ebeln ebelp
+        WITH NON-UNIQUE SORTED KEY ks_1 COMPONENTS ebeln ebelp,
+      lty_t_bapiret2 TYPE STANDARD TABLE OF bapiret2
+        WITH NON-UNIQUE DEFAULT KEY
+        WITH NON-UNIQUE SORTED KEY ks_1 COMPONENTS type field.
+
+    CLASS-DATA:
+      m_instance TYPE REF TO lcl_criacao.
+
+    DATA:
+      m_arquivo      TYPE string,
+      m_manual       TYPE abap_bool,
+      m_simulacao    TYPE abap_bool,
+      mt_arquivo_txt TYPE lty_t_txt,
+      mt_ztbsd070    TYPE lty_t_arquivo,
+      mt_ekpo        TYPE lty_t_ekpo,
+      mt_eket        TYPE lty_t_eket,
+      mt_return      TYPE lty_t_bapiret2.
+
+    METHODS:
+      constructor
+        IMPORTING i_arquivo TYPE string
+                  i_manual  TYPE abap_bool,
+      converte_arquivo,
+      salva_tabela,
+      processa_manual,
+      processa_tabela,
+      seleciona_dados,
+      processa_dados,
+      processa_programa_remessa,
+      seleciona_documento_compra,
+      seleciona_programa_remessa,
+      executa_bapi,
+      atualiza_ztbsd070
+        IMPORTING i_ebeln TYPE bapiret2-field,
+      update_log
+        IMPORTING i_ebeln   TYPE ekpo-ebeln
+                  it_return TYPE lty_t_bapiret2.
+ENDCLASS.
+
+SELECTION-SCREEN BEGIN OF BLOCK bl1 WITH FRAME TITLE TEXT-002.
+PARAMETERS: p_upload TYPE c RADIOBUTTON GROUP rg01 DEFAULT 'X' USER-COMMAND cm01,
+            p_proc   TYPE c RADIOBUTTON GROUP rg01,
+            p_man    TYPE c RADIOBUTTON GROUP rg01.
+SELECTION-SCREEN END OF BLOCK bl1.
+SELECTION-SCREEN BEGIN OF BLOCK bl0 WITH FRAME TITLE TEXT-001.
+PARAMETERS: p_locl_a TYPE rlgrap-filename MODIF ID a00.
+SELECTION-SCREEN END OF BLOCK bl0.
+SELECTION-SCREEN BEGIN OF BLOCK bl2 WITH FRAME.
+PARAMETERS: p_indice TYPE ztbsd070-indice MODIF ID a01.
+SELECTION-SCREEN END OF BLOCK bl2.
+SELECTION-SCREEN BEGIN OF BLOCK bl3 WITH FRAME.
+SELECT-OPTIONS: s_bsart FOR ekko-bsart MODIF ID a02,
+                s_ebeln FOR eket-ebeln MODIF ID a02,
+                s_eindt FOR eket-eindt MODIF ID a02.
+SELECTION-SCREEN END OF BLOCK bl3.
+
+AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_locl_a.
+  lcl_criacao=>abre_arquivo_local( CHANGING c_arquivo = p_locl_a ).
+
+AT SELECTION-SCREEN OUTPUT.
+  DATA(gv_cpo_upload) = SWITCH i( p_upload WHEN abap_true THEN 1 ELSE 0 ).
+  DATA(gv_cpo_proc)   = SWITCH i( p_proc   WHEN abap_true THEN 1 ELSE 0 ).
+  DATA(gv_cpo_man)    = SWITCH i( p_man    WHEN abap_true THEN 1 ELSE 0 ).
+
+  LOOP AT SCREEN.
+    CASE screen-group1.
+      WHEN gc_a00.
+        screen-input  = gv_cpo_upload.
+        screen-active = gv_cpo_upload.
+      WHEN gc_a01.
+        screen-input  = gv_cpo_proc.
+        screen-active = gv_cpo_proc.
+      WHEN gc_a02.
+        screen-input  = gv_cpo_man.
+        screen-active = gv_cpo_man.
+    ENDCASE.
+    MODIFY SCREEN.
+  ENDLOOP.
+
+START-OF-SELECTION.
+  IF p_upload IS NOT INITIAL AND p_locl_a IS INITIAL.
+    MESSAGE 'Arquivo é obrigatório.'(m03) TYPE 'I' DISPLAY LIKE 'E'.
+    EXIT.
+  ENDIF.
+
+  IF p_man IS NOT INITIAL.
+    IF s_bsart[] IS INITIAL.
+      MESSAGE 'Tipo de documento de compras é obrigatório.'(m05) TYPE 'I' DISPLAY LIKE 'E'.
+      EXIT.
+    ENDIF.
+    IF s_eindt[] IS INITIAL.
+      MESSAGE 'Data de remessa é obrigatório.'(m04) TYPE 'I' DISPLAY LIKE 'E'.
+      EXIT.
+    ENDIF.
+  ENDIF.
+
+  DATA(lr_report) = lcl_criacao=>get_instance( EXPORTING
+    i_arquivo = CONV string( p_locl_a )
+    i_manual  = p_man ).
+  lr_report->executa(
+    i_simulacao = abap_false
+    i_acao = COND #(
+      WHEN p_proc = abap_true OR p_man = abap_true THEN lcl_criacao=>co_acao-processa
+      ELSE lcl_criacao=>co_acao-salva ) ).
+  IF p_upload IS INITIAL.
+    lr_report->exibe_log( ).
+  ELSE.
+    MESSAGE 'Arquivo carregado, favor conferir tabela ZTBSD070.'(m04) TYPE 'S'.
+  ENDIF.
+
+CLASS lcl_criacao IMPLEMENTATION.
+  METHOD get_instance.
+    IF m_instance IS NOT BOUND.
+      m_instance = NEW #(
+        i_arquivo = i_arquivo
+        i_manual  = i_manual ).
+    ENDIF.
+    r_instance = m_instance.
+  ENDMETHOD.
+
+  METHOD abre_arquivo_local.
+    DATA:
+      lt_file TYPE filetable,
+      lv_rc   TYPE i.
+
+    cl_gui_frontend_services=>file_open_dialog(
+      EXPORTING file_filter = '.csv'
+      CHANGING  file_table = lt_file
+                rc         = lv_rc ).
+
+    IF lv_rc = 1.
+      c_arquivo = lt_file[ 1 ].
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD constructor.
+    m_arquivo = i_arquivo.
+    m_manual  = i_manual.
+  ENDMETHOD.
+
+  METHOD executa.
+    m_simulacao = i_simulacao.
+    CASE i_acao.
+      WHEN co_acao-processa.
+        IF m_manual = abap_true.
+          processa_manual( ).
+        ELSE.
+          processa_tabela( ).
+        ENDIF.
+      WHEN co_acao-salva.
+        importa_arquivo_local( ).
+        converte_arquivo( ).
+        salva_tabela( ).
+    ENDCASE.
+  ENDMETHOD.
+
+  METHOD importa_arquivo_local.
+    cl_gui_frontend_services=>gui_upload(
+      EXPORTING
+        filename                = m_arquivo
+        filetype                = 'ASC'
+      CHANGING
+        data_tab                = mt_arquivo_txt
+      EXCEPTIONS
+        file_open_error         = 1
+        file_read_error         = 2
+        no_batch                = 3
+        gui_refuse_filetransfer = 4
+        invalid_type            = 5
+        no_authority            = 6
+        unknown_error           = 7
+        bad_data_format         = 8
+        header_not_allowed      = 9
+        separator_not_allowed   = 10
+        header_too_long         = 11
+        unknown_dp_error        = 12
+        access_denied           = 13
+        dp_out_of_memory        = 14
+        disk_full               = 15
+        dp_timeout              = 16
+        not_supported_by_gui    = 17
+        error_no_gui            = 18
+        OTHERS                  = 19
+    ).
+    IF sy-subrc <> 0.
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD converte_arquivo.
+    DATA:
+      ls_ztbsd070 LIKE LINE OF mt_ztbsd070.
+
+    CHECK mt_arquivo_txt IS NOT INITIAL.
+
+    CLEAR mt_ztbsd070.
+    LOOP AT mt_arquivo_txt ASSIGNING FIELD-SYMBOL(<fs_arquivo_txt>) FROM 2.
+      SPLIT <fs_arquivo_txt> AT co_separador INTO
+        ls_ztbsd070-ebeln
+        ls_ztbsd070-ebelp
+        ls_ztbsd070-indice.
+
+      SHIFT: ls_ztbsd070-ebelp RIGHT DELETING TRAILING space,
+             ls_ztbsd070-indice RIGHT DELETING TRAILING space.
+      TRANSLATE: ls_ztbsd070-ebelp  USING ' 0',
+                 ls_ztbsd070-indice USING ' 0'.
+
+      mt_ztbsd070 = VALUE #( BASE mt_ztbsd070 ( ls_ztbsd070 ) ).
+    ENDLOOP.
+  ENDMETHOD.
+
+  METHOD salva_tabela.
+    CHECK mt_ztbsd070 IS NOT INITIAL.
+
+    MODIFY ztbsd070 FROM TABLE mt_ztbsd070.
+*    INSERT ztbsd070 FROM TABLE mt_ztbsd070 ACCEPTING DUPLICATE KEYS.
+  ENDMETHOD.
+
+  METHOD processa_tabela.
+    seleciona_dados( ).
+    processa_dados( ).
+  ENDMETHOD.
+
+  METHOD seleciona_dados.
+    SELECT * FROM ztbsd070
+      INTO TABLE @mt_ztbsd070
+      WHERE indice = @p_indice.
+
+    seleciona_documento_compra( ).
+  ENDMETHOD.
+
+  METHOD processa_dados.
+    executa_bapi( ).
+  ENDMETHOD.
+
+  METHOD seleciona_documento_compra.
+    CHECK mt_ztbsd070 IS NOT INITIAL.
+
+    SELECT ebeln, ebelp, menge, meins
+      FROM ekpo
+      INTO TABLE @mt_ekpo
+      FOR ALL ENTRIES IN @mt_ztbsd070
+      WHERE ebeln = @mt_ztbsd070-ebeln
+        AND ebelp = @mt_ztbsd070-ebelp.
+  ENDMETHOD.
+
+  METHOD executa_bapi.
+    DATA:
+      lt_stock_trans_items TYPE STANDARD TABLE OF bapidlvreftosto
+        WITH NON-UNIQUE DEFAULT KEY,
+      lv_sales_unit_iso    TYPE bapidlvreftosto-sales_unit_iso,
+      lt_return            LIKE mt_return.
+
+    LOOP AT mt_ekpo USING KEY ks_1
+      ASSIGNING FIELD-SYMBOL(<fs_ekpo>) GROUP BY <fs_ekpo>-ebeln.
+      CLEAR lt_stock_trans_items.
+
+      LOOP AT GROUP <fs_ekpo> ASSIGNING FIELD-SYMBOL(<fs_item>).
+        CLEAR lv_sales_unit_iso.
+        CALL FUNCTION 'UNIT_OF_MEASURE_SAP_TO_ISO'
+          EXPORTING
+            sap_code    = <fs_item>-meins
+          IMPORTING
+            iso_code    = lv_sales_unit_iso
+          EXCEPTIONS
+            not_found   = 1
+            no_iso_code = 2
+            OTHERS      = 3.
+        IF sy-subrc <> 0.
+          CONTINUE.
+        ENDIF.
+
+        lt_stock_trans_items = VALUE #( BASE lt_stock_trans_items
+          ( ref_doc        = <fs_item>-ebeln
+            ref_item       = <fs_item>-ebelp
+*            dlv_qty        = <fs_item>-menge
+*            sales_unit     = <fs_item>-meins
+*            sales_unit_iso = lv_sales_unit_iso
+            ) ).
+      ENDLOOP.
+
+      CALL FUNCTION 'BAPI_OUTB_DELIVERY_CREATE_STO'
+        TABLES
+          stock_trans_items = lt_stock_trans_items
+          return            = lt_return.
+
+      update_log( EXPORTING
+        i_ebeln   = <fs_ekpo>-ebeln
+        it_return = lt_return ).
+
+      IF m_simulacao IS INITIAL.
+        IF m_manual IS INITIAL.
+          atualiza_ztbsd070( CONV #( <fs_ekpo>-ebeln ) ).
+        ENDIF.
+        CALL FUNCTION 'BAPI_TRANSACTION_COMMIT'.
+      ENDIF.
+    ENDLOOP.
+  ENDMETHOD.
+
+  METHOD atualiza_ztbsd070.
+    CHECK m_simulacao IS INITIAL
+      AND line_exists( mt_return[ KEY ks_1 COMPONENTS type = 'S' field = i_ebeln ] ).
+
+    DELETE FROM ztbsd070 WHERE ebeln = i_ebeln.
+  ENDMETHOD.
+
+  METHOD update_log.
+    DATA
+      lt_return LIKE it_return.
+
+    lt_return = it_return.
+    LOOP AT lt_return ASSIGNING FIELD-SYMBOL(<fs_return>).
+      <fs_return>-field = i_ebeln.
+    ENDLOOP.
+
+    mt_return = VALUE #( BASE mt_return ( LINES OF lt_return ) ).
+  ENDMETHOD.
+
+  METHOD exibe_log.
+    CONSTANTS:
+      BEGIN OF lco_type,
+        success TYPE bapiret2-type VALUE 'S',
+        warning TYPE bapiret2-type VALUE 'W',
+        error   TYPE bapiret2-type VALUE 'E',
+      END OF lco_type.
+
+    IF mt_return IS INITIAL.
+      WRITE '*** NENHUM REGISTRO PROCESSADO! *** '(m01).
+      EXIT.
+    ENDIF.
+
+    ULINE.
+    WRITE: / sy-vline, 3 'Status'(t01), 11 sy-vline, 13 'D Compras'(t02), 23 sy-vline, 24 'Mensagem'(t03), 180 sy-vline.
+    ULINE.
+
+    LOOP AT mt_return ASSIGNING FIELD-SYMBOL(<fs_return>).
+      WRITE: / sy-vline,
+               SWITCH #( <fs_return>-type
+                  WHEN lco_type-success THEN icon_led_green
+                  WHEN lco_type-warning THEN icon_led_yellow
+                  WHEN lco_type-error   THEN icon_led_red ) AS ICON UNDER TEXT-t01, 11  sy-vline,
+               <fs_return>-field(10)     UNDER TEXT-t02, 23  sy-vline,
+               <fs_return>-message(180)  UNDER TEXT-t03, 180 sy-vline.
+    ENDLOOP.
+    ULINE.
+  ENDMETHOD.
+  METHOD processa_manual.
+    seleciona_programa_remessa( ).
+    processa_programa_remessa( ).
+    seleciona_documento_compra( ).
+    processa_dados( ).
+  ENDMETHOD.
+  METHOD seleciona_programa_remessa.
+    SELECT rem~ebeln, rem~ebelp, SUM( rem~menge - rem~glmng ) AS calculo
+      FROM eket AS rem
+      INNER JOIN ekko AS cab
+        ON  cab~ebeln = rem~ebeln
+      INTO TABLE @mt_eket
+      WHERE bsart     IN @s_bsart
+        AND rem~ebeln IN @s_ebeln
+        AND rem~eindt IN @s_eindt
+      GROUP BY rem~ebeln, rem~ebelp.
+  ENDMETHOD.
+  METHOD processa_programa_remessa.
+    CHECK mt_eket IS NOT INITIAL.
+
+    DELETE mt_eket WHERE calculo <= 0.
+    mt_ztbsd070 = CORRESPONDING #( mt_eket ).
+  ENDMETHOD.
+ENDCLASS.
