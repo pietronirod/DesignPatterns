@@ -1,0 +1,192 @@
+*&---------------------------------------------------------------------*
+*& Report ZPSD_PROC_REM_SIS
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zpsd_proc_rem_sis.
+
+TABLES: ztbsd072.
+
+CLASS lcl_report DEFINITION CREATE PRIVATE.
+  PUBLIC SECTION.
+    TYPES:
+      lty_t_dat TYPE RANGE OF d.
+
+    CLASS-METHODS:
+      get_instance
+        IMPORTING
+                  i_liberacao       TYPE abap_bool
+                  i_reserva         TYPE abap_bool
+                  i_elimina         TYPE abap_bool
+                  it_elimina        TYPE lty_t_dat
+                  it_vbeln          TYPE zcl_sd_sis_exits=>ty_r_vbeln
+                  it_ihrez          TYPE zcl_sd_sis_exits=>ty_r_ihrez
+                  it_erdat          TYPE zcl_sd_sis_exits=>ty_r_erdat
+        RETURNING VALUE(r_instance) TYPE REF TO lcl_report.
+
+    METHODS:
+      processa_dados.
+
+  PRIVATE SECTION.
+    TYPES:
+      lty_t_rsparams TYPE STANDARD TABLE OF rsparams
+        WITH NON-UNIQUE DEFAULT KEY.
+
+    CLASS-DATA:
+      m_instance  TYPE REF TO lcl_report.
+
+    DATA:
+      m_liberacao TYPE abap_bool,
+      m_reserva   TYPE abap_bool,
+      m_elimina   TYPE abap_bool,
+      mt_elimina  TYPE lty_t_dat,
+      mt_rsparams TYPE lty_t_rsparams.
+
+    METHODS:
+      constructor
+        IMPORTING
+          i_liberacao TYPE abap_bool
+          i_reserva   TYPE abap_bool
+          i_elimina   TYPE abap_bool
+          it_elimina  TYPE lty_t_dat
+          it_vbeln    TYPE zcl_sd_sis_exits=>ty_r_vbeln
+          it_ihrez    TYPE zcl_sd_sis_exits=>ty_r_ihrez
+          it_erdat    TYPE zcl_sd_sis_exits=>ty_r_erdat,
+
+      elimina_registros,
+      preenche_rsparams
+        IMPORTING
+                  i_selname         TYPE rsparams-selname
+                  it_selopt         TYPE STANDARD TABLE
+        RETURNING VALUE(rt_rsparam) TYPE lty_t_rsparams.
+
+ENDCLASS.
+
+SELECTION-SCREEN BEGIN OF BLOCK bl1 WITH FRAME TITLE TEXT-t01.
+SELECT-OPTIONS:
+  s_vbeln FOR ztbsd072-vbeln,
+  s_ihrez FOR ztbsd072-ihrez,
+  s_erdat FOR ztbsd072-erdat.
+SELECTION-SCREEN END OF BLOCK bl1.
+
+SELECTION-SCREEN BEGIN OF BLOCK bl2 WITH FRAME TITLE TEXT-t02.
+PARAMETERS:
+  p_lib TYPE c AS CHECKBOX,
+  p_rem TYPE c AS CHECKBOX,
+  p_eli TYPE c AS CHECKBOX USER-COMMAND cm01.
+SELECTION-SCREEN END OF BLOCK bl2.
+
+SELECTION-SCREEN BEGIN OF BLOCK bl3 WITH FRAME TITLE TEXT-t03.
+SELECT-OPTIONS:
+  s_data FOR ztbsd072-erdat MODIF ID a03.
+SELECTION-SCREEN END OF BLOCK bl3.
+
+AT SELECTION-SCREEN OUTPUT.
+  DATA(lv_exibe) = SWITCH i( p_eli
+    WHEN abap_true THEN 1
+    ELSE 0 ).
+
+  LOOP AT SCREEN.
+    CASE screen-group1.
+      WHEN 'A03'.
+        screen-input  = lv_exibe.
+        screen-active = lv_exibe.
+    ENDCASE.
+    MODIFY SCREEN.
+  ENDLOOP.
+
+START-OF-SELECTION.
+  IF p_lib IS INITIAL AND p_rem IS INITIAL AND p_eli IS INITIAL.
+    MESSAGE 'Selecione ao menos um tipo de processamento.'(m01) TYPE 'I' DISPLAY LIKE 'E'.
+    EXIT.
+  ENDIF.
+  lcl_report=>get_instance(
+    EXPORTING
+      i_liberacao = p_lib
+      i_reserva   = p_rem
+      i_elimina   = p_eli
+      it_elimina  = s_data[]
+      it_vbeln    = s_vbeln[]
+      it_ihrez    = s_ihrez[]
+      it_erdat    = s_erdat[]
+  )->processa_dados( ).
+
+CLASS lcl_report IMPLEMENTATION.
+  METHOD constructor.
+    m_liberacao = i_liberacao.
+    m_reserva   = i_reserva.
+    m_elimina   = i_elimina.
+    mt_elimina  = it_elimina.
+    mt_rsparams = preenche_rsparams(
+      EXPORTING
+        i_selname  = 'S_VBELN'
+        it_selopt  = it_vbeln
+    ).
+
+    mt_rsparams = VALUE #( BASE mt_rsparams ( LINES OF
+      preenche_rsparams(
+        EXPORTING
+          i_selname  = 'S_IHREZ'
+          it_selopt  = it_ihrez
+    ) ) ).
+
+    mt_rsparams = VALUE #( BASE mt_rsparams ( LINES OF
+      preenche_rsparams(
+        EXPORTING
+          i_selname  = 'S_ERDAT'
+          it_selopt  = it_erdat
+    ) ) ).
+  ENDMETHOD.
+  METHOD get_instance.
+    IF m_instance IS INITIAL.
+      m_instance = NEW #(
+        i_liberacao = i_liberacao
+        i_reserva   = i_reserva
+        i_elimina   = i_elimina
+        it_elimina  = it_elimina
+        it_vbeln    = it_vbeln
+        it_ihrez    = it_ihrez
+        it_erdat    = it_erdat ).
+    ENDIF.
+    r_instance = m_instance.
+  ENDMETHOD.
+  METHOD processa_dados.
+    IF m_reserva IS NOT INITIAL.
+      SUBMIT zpsd_in093_in426 WITH SELECTION-TABLE mt_rsparams AND RETURN.
+    ENDIF.
+    IF m_liberacao IS NOT INITIAL.
+      mt_rsparams = VALUE #( BASE mt_rsparams
+        ( selname = 'P_LIB'
+          kind    = 'P'
+          sign    = 'I'
+          option  = 'EQ'
+          low     = abap_true ) ).
+      SUBMIT zpsd_in093_in426 WITH SELECTION-TABLE mt_rsparams AND RETURN.
+    ENDIF.
+    IF m_elimina IS NOT INITIAL.
+      elimina_registros( ).
+    ENDIF.
+  ENDMETHOD.
+  METHOD preenche_rsparams.
+    LOOP AT it_selopt ASSIGNING FIELD-SYMBOL(<fs_selopt>).
+      ASSIGN ('<FS_SELOPT>-SIGN')   TO FIELD-SYMBOL(<fs_sign>).
+      ASSIGN ('<FS_SELOPT>-OPTION') TO FIELD-SYMBOL(<fs_option>).
+      ASSIGN ('<FS_SELOPT>-LOW')    TO FIELD-SYMBOL(<fs_low>).
+      ASSIGN ('<FS_SELOPT>-HIGH')   TO FIELD-SYMBOL(<fs_high>).
+
+      rt_rsparam = VALUE #( BASE rt_rsparam
+        ( selname = i_selname
+          kind    = 'S'
+          sign    = <fs_sign>
+          option  = <fs_option>
+          low     = <fs_low>
+          high    = <fs_high> ) ).
+    ENDLOOP.
+  ENDMETHOD.
+  METHOD elimina_registros.
+    DELETE FROM ztbsd072
+      WHERE erdat     IN @mt_elimina
+        AND status093 IN ('88', '99')
+        AND status426 IN ('88', '99').
+  ENDMETHOD.
+ENDCLASS.

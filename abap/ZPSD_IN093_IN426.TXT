@@ -1,0 +1,25 @@
+*&---------------------------------------------------------------------*
+*& Report ZPSD_IN093_IN426
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zpsd_in093_in426.
+
+TABLES ztbsd072.
+
+SELECT-OPTIONS:
+  s_vbeln FOR ztbsd072-vbeln,
+  s_ihrez FOR ztbsd072-ihrez,
+  s_erdat FOR ztbsd072-erdat.
+
+PARAMETERS p_lib TYPE abap_bool AS CHECKBOX.
+
+START-OF-SELECTION.
+  zcl_sd_sis_exits=>get_instance( )->chama_interfaces_sis(
+    EXPORTING
+      i_processo = SWITCH #( p_lib
+        WHEN abap_true THEN zcl_sd_sis_exits=>co_liberacao
+        ELSE zcl_sd_sis_exits=>co_reserva )
+      it_vbeln   = s_vbeln[]
+      it_ihrez   = s_ihrez[]
+      it_erdat   = s_erdat[] ).

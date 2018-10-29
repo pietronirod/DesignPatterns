@@ -1,0 +1,1280 @@
+class ZCL_SD_SIS_EXITS definition
+  public
+  final
+  create private .
+
+public section.
+
+  types:
+    ty_r_vbeln TYPE RANGE OF ztbsd072-vbeln .
+  types:
+    ty_r_ihrez TYPE RANGE OF ztbsd072-ihrez .
+  types:
+    ty_r_erdat TYPE RANGE OF ztbsd072-erdat .
+
+  constants:
+    co_liberacao TYPE c LENGTH 5 value 'IN426' ##NO_TEXT.
+  constants:
+    co_reserva   TYPE c LENGTH 5 value 'IN093' ##NO_TEXT.
+
+  class-methods GET_INSTANCE
+    returning
+      value(R_INSTANCE) type ref to ZCL_SD_SIS_EXITS .
+  methods CHAMA_INTERFACES_SIS
+    importing
+      !I_PROCESSO like CO_LIBERACAO
+      !IT_VBELN type TY_R_VBELN
+      !IT_IHREZ type TY_R_IHREZ
+      !IT_ERDAT type TY_R_ERDAT .
+  methods EFETUA_RESERVA_MERCADORIA
+    importing
+      !IT_XLIPS type TAB_LIPSVB .
+  methods ENVIA_LIBERACAO_PICKING
+    importing
+      !IT_XLIPS type TAB_LIPSVB
+      !IT_XLIKP type SHP_LIKP_T
+      !IT_YLIKP type SHP_YLIKP_T .
+  methods CRIA_REGISTRO
+    importing
+      !I_LIKP type LIKP
+      !IT_LIPS type TT_LIPS .
+  methods ELIMINA_REGISTRO
+    importing
+      !IT_LIPS type TT_LIPS .
+  methods CONTINUA_PROCESSO
+    importing
+      !I_LIKP type LIKP
+    returning
+      value(R_CONTINUA) type ABAP_BOOL .
+  PROTECTED SECTION.
+private section.
+
+  types:
+    BEGIN OF ty_s_ztbt002dp,
+      de1  TYPE ztbt002dp-de1,
+      para TYPE ztbt002dp-para,
+    END OF ty_s_ztbt002dp .
+  types:
+    ty_t_ztbt002dp TYPE SORTED TABLE OF ty_s_ztbt002dp
+        WITH NON-UNIQUE KEY de1 .
+  types:
+    BEGIN OF ty_s_mara,
+      matnr TYPE mara-matnr,
+      bismt TYPE mara-bismt,
+    END OF ty_s_mara .
+  types:
+    ty_t_mara TYPE SORTED TABLE OF ty_s_mara
+      WITH NON-UNIQUE KEY matnr .
+  types:
+    ty_t_return    TYPE STANDARD TABLE OF bapiret2
+        WITH NON-UNIQUE SORTED KEY ks_1 COMPONENTS field .
+  types:
+    ty_t_ztbsd072 TYPE STANDARD TABLE OF ztbsd072
+        WITH NON-UNIQUE KEY vbeln ihrez
+        WITH NON-UNIQUE SORTED KEY ks_1 COMPONENTS vbeln ihrez status093
+        WITH NON-UNIQUE SORTED KEY ks_2 COMPONENTS vbeln ihrez status426 .
+
+  constants CO_SUCESSO type ZTBSD072-STATUS093 value '99' ##NO_TEXT.
+  class-data M_INSTANCE type ref to ZCL_SD_SIS_EXITS .
+  class-data M_PROCESSO like CO_LIBERACAO .
+  data MT_VBELN type TY_R_VBELN .
+  data MT_ZTBSD072 type TY_T_ZTBSD072 .
+  data MT_ZTBT002DP type TY_T_ZTBT002DP .
+  data M_PROXY type ref to IF_PROXY_CLIENT .
+  data M_LIBERACAO type ref to ZCL_SISCO_SI_S_ENVIA_LIB_PICKI .
+  data M_RESERVA type ref to ZCL_SISCO_SI_S_RESERVA_MERC_OU .
+  data MT_RETURN type TY_T_RETURN .
+  data MR_OBSERVER type ref to ZIF_PROXY_OBSERVER .
+  data MT_IHREZ type TY_R_IHREZ .
+  data MT_ERDAT type TY_R_ERDAT .
+
+  methods SALVA_REGISTRO
+    importing
+      !IT_LIPS type TT_LIPS
+      !IT_MARA type TY_T_MARA
+      !I_IHREZ type ZTBSD072-IHREZ
+      !I_LIKP type LIKP .
+  methods SELECIONA_DADOS
+    importing
+      !IT_LIPS type TT_LIPS
+    exporting
+      !E_IHREZ type ZTBSD072-IHREZ
+      !ET_MARA type TY_T_MARA .
+  methods SELECIONA_MARA
+    importing
+      !IT_LIPS type TT_LIPS
+    returning
+      value(RT_MARA) type TY_T_MARA .
+  methods SELECIONA_VBAK
+    importing
+      !I_VBELN type VBAK-VBELN
+    returning
+      value(R_IHREZ) type VBAK-IHREZ .
+  methods ATUALIZA_STATUS .
+  methods SALVA_LOG .
+  methods EXECUTA_LIBERACAO
+    changing
+      !ES_ZTBSD072 type ZTBSD072 .
+  methods EXECUTA_RESERVA
+    changing
+      !ES_ZTBSD072 type ZTBSD072 .
+  methods SELECIONA_CONTROLE .
+  methods SELECIONA_LIBERACAO .
+  methods SELECIONA_RESERVA .
+  methods SELECIONA_DE_PARA .
+  methods INICIALIZA_PROXY .
+  methods CHAMA_PROXY .
+  methods PREENCHE_LIBERACAO
+    importing
+      !I_ZTBSD072 type ZTBSD072
+    exporting
+      value(ET_PARMBIND) type ABAP_PARMBIND_TAB
+      !ES_INPUT type ZCL_SISMT_ENVIA_LIB_PICKING_RE
+      !ES_OUTPUT type ZCL_SISMT_ENVIA_LIB_PICKING_R1 .
+  methods PROCESSA_LOG
+    importing
+      !I_FIELD type BAPIRET2-FIELD .
+  methods PREENCHE_RESERVA
+    importing
+      !I_ZTBSD072 type ZTBSD072
+    exporting
+      value(ET_PARMBIND) type ABAP_PARMBIND_TAB
+      !ES_INPUT type ZCL_SISMT_RESERVA_MERC_RES_SAP
+      !ES_OUTPUT type ZCL_SISMT_RESERVA_MERC_REQ_SAP .
+ENDCLASS.
+
+
+
+CLASS ZCL_SD_SIS_EXITS IMPLEMENTATION.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Private Method ZCL_SD_SIS_EXITS->ATUALIZA_STATUS
+* +-------------------------------------------------------------------------------------------------+
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD atualiza_status.
+    UPDATE ztbsd072 FROM TABLE @mt_ztbsd072.
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method ZCL_SD_SIS_EXITS->CHAMA_INTERFACES_SIS
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] I_PROCESSO                     LIKE        CO_LIBERACAO
+* | [--->] IT_VBELN                       TYPE        TY_R_VBELN
+* | [--->] IT_IHREZ                       TYPE        TY_R_IHREZ
+* | [--->] IT_ERDAT                       TYPE        TY_R_ERDAT
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD chama_interfaces_sis.
+    mt_vbeln    = it_vbeln.
+    mt_ihrez    = it_ihrez.
+    mt_erdat    = it_erdat.
+    m_processo = i_processo.
+
+    seleciona_controle( ).
+    chama_proxy( ).
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Private Method ZCL_SD_SIS_EXITS->CHAMA_PROXY
+* +-------------------------------------------------------------------------------------------------+
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD chama_proxy.
+    DATA:
+      lt_parmbind TYPE abap_parmbind_tab,
+      lr_output   TYPE REF TO data.
+
+    CHECK mt_ztbsd072 IS NOT INITIAL.
+
+    CLEAR mt_return.
+
+    inicializa_proxy( ).
+
+    LOOP AT mt_ztbsd072 ASSIGNING FIELD-SYMBOL(<fs_ztbsd072>).
+      CASE m_processo.
+        WHEN co_liberacao.
+          executa_liberacao( CHANGING es_ztbsd072 = <fs_ztbsd072> ).
+        WHEN co_reserva.
+          executa_reserva( CHANGING es_ztbsd072 = <fs_ztbsd072> ).
+      ENDCASE.
+    ENDLOOP.
+
+    atualiza_status( ).
+    salva_log( ).
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method ZCL_SD_SIS_EXITS->CONTINUA_PROCESSO
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] I_LIKP                         TYPE        LIKP
+* | [<-()] R_CONTINUA                     TYPE        ABAP_BOOL
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD continua_processo.
+    r_continua = abap_true.
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method ZCL_SD_SIS_EXITS->CRIA_REGISTRO
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] I_LIKP                         TYPE        LIKP
+* | [--->] IT_LIPS                        TYPE        TT_LIPS
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD cria_registro.
+    DATA:
+      lv_ihrez TYPE ztbsd072-ihrez,
+      lt_mara  TYPE ty_t_mara.
+
+    CHECK i_likp IS NOT INITIAL AND it_lips IS NOT INITIAL.
+
+    seleciona_dados(
+      EXPORTING it_lips = it_lips
+      IMPORTING e_ihrez = lv_ihrez
+                et_mara = lt_mara ).
+
+    salva_registro( EXPORTING
+      i_likp  = i_likp
+      it_lips = it_lips
+      i_ihrez = lv_ihrez
+      it_mara = lt_mara ).
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method ZCL_SD_SIS_EXITS->EFETUA_RESERVA_MERCADORIA
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] IT_XLIPS                       TYPE        TAB_LIPSVB
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD efetua_reserva_mercadoria.
+*--------------------------------------------------------------------*
+* Pular interface 093 quando for o processo da 221
+*--------------------------------------------------------------------*
+    DATA lv_in221 TYPE abap_bool VALUE abap_false.
+    IMPORT in221 TO lv_in221 FROM MEMORY ID 'Z_SIS_IN_221'.
+    CHECK lv_in221 EQ abap_false.
+*--------------------------------------------------------------------*
+
+    TYPES: BEGIN OF ty_vbak,
+             vbeln TYPE vbak-vbeln,
+             auart TYPE vbak-auart,
+             vkorg TYPE vbak-vkorg,
+             vtweg TYPE vbak-vtweg,
+             ihrez TYPE vbak-ihrez,
+           END OF ty_vbak,
+
+           BEGIN OF ty_vbap,
+             vbeln TYPE vbap-vbeln,
+             posnr TYPE vbap-posnr,
+             werks TYPE vbap-werks,
+           END OF ty_vbap.
+*--------------------------------------------------------------------*
+* Internal Tables
+*--------------------------------------------------------------------*
+    DATA: it_vbap          TYPE TABLE OF ty_vbap,
+          it_werks_dp      TYPE TABLE OF ztbt002dp,
+          it_return_ov     TYPE TABLE OF bapiret2,
+          it_return_po     TYPE TABLE OF bapiret2,
+          it_orderitems    TYPE TABLE OF bapisditbos,
+          it_orderbusiness TYPE TABLE OF bapisdbusi,
+          it_poitem	       TYPE TABLE OF bapimepoitem,
+          it_poschedule	   TYPE TABLE OF bapimeposchedule,
+          it_poaccount     TYPE TABLE OF bapimepoaccount.
+*--------------------------------------------------------------------*
+* Work Areas
+*--------------------------------------------------------------------*
+    DATA: wa_vbak           TYPE ty_vbak,
+          wa_output         TYPE zcl_sismt_reserva_merc_req_sap,
+          wa_input          TYPE zcl_sismt_reserva_merc_res_sap,
+          wa_header         TYPE bapisdhd,
+          wa_lips           TYPE lipsvb,
+          wa_poheader       TYPE bapimepoheader,
+          wa_poexpimpheader TYPE bapieikp,
+          wa_poitem	        TYPE bapimepoitem,
+          wa_poschedule	    TYPE bapimeposchedule,
+          wa_poaccount      TYPE bapimepoaccount.
+*&---------------------------------------------------------------------*
+* Constantes
+*&---------------------------------------------------------------------*
+    CONSTANTS: c_tvarv     TYPE string VALUE 'ZCSD_EF_IN093',
+               c_auart_b2b TYPE string VALUE 'AUART_B2B',
+               c_auart_b2c TYPE string VALUE 'AUART_B2C',
+               c_vkorg_b2b TYPE string VALUE 'VKORG_B2B',
+               c_vkorg_b2c TYPE string VALUE 'VKORG_B2C',
+               c_vtweg_b2b TYPE string VALUE 'VTWEG_B2B',
+               c_vtweg_b2c TYPE string VALUE 'VTWEG_B2C',
+               c_bstzd_b2b TYPE string VALUE 'BSTZD_B2B',
+               c_bstzd_b2c TYPE string VALUE 'BSTZD_B2C'.
+*--------------------------------------------------------------------*
+* Variables
+*--------------------------------------------------------------------*
+    DATA: vg_doc   TYPE c LENGTH 10,
+          vg_ebeln TYPE bapimepoheader-po_number,
+          vg_vbeln TYPE vbeln_va,
+          vg_uzeit TYPE c LENGTH 8.
+*--------------------------------------------------------------------*
+* Objetos
+*--------------------------------------------------------------------*
+    DATA: o_tvarvc TYPE REF TO zcl_ut_tvarvc_handler,
+          o_cxf    TYPE REF TO cx_ai_system_fault,
+          o_in093  TYPE REF TO zcl_sisco_si_s_reserva_merc_ou.
+*&---------------------------------------------------------------------*
+* Ranges
+*&---------------------------------------------------------------------*
+    DATA: r_auart_b2b TYPE RANGE OF char255,
+          r_auart_b2c TYPE RANGE OF char255,
+          r_vkorg_b2b TYPE RANGE OF char255,
+          r_vkorg_b2c TYPE RANGE OF char255,
+          r_vtweg_b2b TYPE RANGE OF char255,
+          r_vtweg_b2c TYPE RANGE OF char255,
+          r_bstzd_b2b TYPE RANGE OF char255,
+          r_bstzd_b2c TYPE RANGE OF char255.
+*--------------------------------------------------------------------*
+* Inicio do Processamento
+*--------------------------------------------------------------------*
+
+
+*   Busca De Para
+    SELECT *
+    FROM ztbt002dp
+    INTO TABLE it_werks_dp
+    WHERE sistema    EQ 'SAPLEG'
+      AND controle   EQ 'WERKS'.
+    IF sy-subrc IS INITIAL.
+      SORT it_werks_dp.
+    ENDIF.
+
+*   Busca Dados TVARV
+    FREE o_tvarvc.
+    CREATE OBJECT o_tvarvc
+      EXPORTING
+        prefix    = c_tvarv
+        separator = '_'.
+
+    LOOP AT it_xlips INTO wa_lips.
+      AT NEW vgbel.
+        vg_doc = wa_lips-vgbel.
+      ENDAT.
+      IF vg_doc IS NOT INITIAL.
+*   Cenário B2C - Envolve OV, Requisição, Pedido e Remessa
+        IF vg_doc(2) EQ '45'.
+          vg_ebeln = vg_doc.
+
+          IF o_tvarvc IS BOUND.
+*       Busca Select Options campos
+            o_tvarvc->get_range( EXPORTING suffix = c_auart_b2c
+                                   IMPORTING value = r_auart_b2c ).
+
+*       Busca Select Options campos
+            o_tvarvc->get_range( EXPORTING suffix = c_vkorg_b2c
+                                   IMPORTING value = r_vkorg_b2c ).
+
+*       Busca Select Options campos
+            o_tvarvc->get_range( EXPORTING suffix = c_vtweg_b2c
+                                   IMPORTING value = r_vtweg_b2c ).
+
+*       Busca Select Options campos
+            o_tvarvc->get_range( EXPORTING suffix = c_bstzd_b2c
+                                   IMPORTING value = r_bstzd_b2c ).
+          ENDIF.
+
+          CALL FUNCTION 'BAPI_PO_GETDETAIL1'
+            EXPORTING
+              purchaseorder      = vg_ebeln
+              account_assignment = abap_true
+            IMPORTING
+              poheader           = wa_poheader
+              poexpimpheader     = wa_poexpimpheader
+            TABLES
+              return             = it_return_po
+              poitem             = it_poitem
+              poschedule         = it_poschedule
+              poaccount          = it_poaccount.
+
+          IF sy-subrc IS INITIAL.
+*            IF it_poaccount IS NOT INITIAL.
+            READ TABLE it_poitem ASSIGNING FIELD-SYMBOL(<fs_poitem>) INDEX 1.
+            IF sy-subrc IS INITIAL.
+              IF <fs_poitem> IS ASSIGNED.
+                SELECT SINGLE vbeln
+                FROM vbep
+                INTO vg_vbeln
+                WHERE banfn EQ <fs_poitem>-preq_no.
+                IF vg_vbeln IS NOT INITIAL.
+                  SELECT SINGLE  vbeln auart vkorg vtweg ihrez
+                  FROM vbak
+                  INTO wa_vbak
+                  WHERE vbeln = vg_vbeln.
+                  IF sy-subrc IS INITIAL.
+
+                    SELECT vbeln posnr werks
+                    FROM vbap
+                    INTO TABLE it_vbap
+                    WHERE vbeln = wa_vbak-vbeln.
+                    IF sy-subrc IS INITIAL.
+                      SORT it_vbap.
+                    ENDIF.
+                    IF wa_vbak-auart IN r_auart_b2c AND
+                       wa_vbak-vkorg IN r_vkorg_b2c AND
+                       wa_vbak-vtweg IN r_vtweg_b2c. "AND
+
+                      wa_output-mt_reserva_merc_req_sap-p_enc_cd      = wa_vbak-ihrez.
+                      READ TABLE it_vbap ASSIGNING FIELD-SYMBOL(<fs_vbap>) INDEX 1.
+                      IF <fs_vbap> IS ASSIGNED.
+                        READ TABLE it_werks_dp ASSIGNING FIELD-SYMBOL(<fs_werks_dp>)
+                        WITH KEY sistema  = 'SAPLEG'
+                                 controle = 'WERKS'
+                                 de1      = <fs_vbap>-werks BINARY SEARCH.
+                        IF <fs_werks_dp> IS ASSIGNED.
+                          wa_output-mt_reserva_merc_req_sap-p_fil_id_wms = <fs_werks_dp>-para.
+                        ENDIF.
+                      ENDIF.
+                      wa_output-mt_reserva_merc_req_sap-p_chamado_por = 'SAP'.
+
+                      CREATE OBJECT o_in093.
+                      IF o_in093 IS BOUND.
+                        TRY .
+                            CALL METHOD o_in093->si_s_reserva_merc_out
+                              EXPORTING
+                                output = wa_output
+                              IMPORTING
+                                input  = wa_input.
+
+                            DATA: lt_return TYPE bapiret2_tab.
+
+                            DATA(lr_obs) = zcl_proxy_observer=>get_instance( o_in093 ).
+                            lt_return = VALUE #( BASE lt_return
+                              ( lr_obs->get_message_id( abap_true ) )
+                              ( lr_obs->get_message_id( ) ) ).
+
+                            READ TABLE wa_input-mt_reserva_merc_res_sap-encomenda-item_encomenda
+                            ASSIGNING FIELD-SYMBOL(<fs_encomenda>) INDEX 1.
+                            IF <fs_encomenda> IS ASSIGNED AND
+                               <fs_encomenda>-end_enc_id IS NOT INITIAL.
+                              APPEND INITIAL LINE TO lt_return ASSIGNING FIELD-SYMBOL(<fs_return>).
+                              <fs_return>-type = 'S'.
+
+                              WRITE sy-uzeit TO vg_uzeit USING EDIT MASK '__:__:__'.
+
+                              CONCATENATE vg_uzeit 'Encomenda' wa_vbak-ihrez 'integrada com sucesso no SIS'
+                                     INTO <fs_return>-message SEPARATED BY space.
+                            ELSE.
+                              APPEND INITIAL LINE TO lt_return ASSIGNING <fs_return>.
+                              <fs_return>-type = 'E'.
+                              WRITE sy-uzeit TO vg_uzeit USING EDIT MASK '__:__:__'.
+
+                              CONCATENATE vg_uzeit 'Encomenda' wa_vbak-ihrez 'integrada com o SIS sem retorno'
+                                     INTO <fs_return>-message SEPARATED BY space.
+                            ENDIF.
+
+                          CATCH cx_ai_system_fault  INTO o_cxf.
+
+                            APPEND INITIAL LINE TO lt_return ASSIGNING <fs_return>.
+                            <fs_return>-type = 'E'.
+                            <fs_return>-message = o_cxf->code.
+
+                            APPEND INITIAL LINE TO lt_return ASSIGNING <fs_return>.
+                            <fs_return>-type = 'E'.
+                            <fs_return>-message = o_cxf->errortext.
+
+                            APPEND VALUE #(
+                              type    = 'E'
+                              message = 'Erro ao executar interface de Reserva de Mercadoria' )
+                            TO lt_return.
+                        ENDTRY.
+
+                        IF lt_return[] IS NOT INITIAL.
+                          "IN-093
+                          CALL FUNCTION 'ZFM_PO_MSG_LOG_CREATE'
+                            EXPORTING
+                              iv_extnumber = CONV balnrext( wa_vbak-ihrez )
+                              iv_object    = 'INTERFACES'
+                              iv_subobject = 'SIS_002'
+                              it_msgs      = lt_return
+                              iv_save      = abap_true
+                              iv_display   = abap_false
+                            EXCEPTIONS
+                              create_error = 1
+                              msg_error    = 2
+                              save_error   = 3
+                              OTHERS       = 4.
+                        ENDIF.
+                      ENDIF.
+                    ENDIF.
+                  ENDIF.
+                ENDIF.
+              ENDIF.
+
+            ENDIF.
+          ENDIF.
+*   Cenário B2B - Sem Pedido, Somente OV e Remessa
+        ELSE.
+          IF o_tvarvc IS BOUND.
+*       Busca Select Options campos
+            o_tvarvc->get_range( EXPORTING suffix = c_auart_b2b
+                                   IMPORTING value = r_auart_b2b ).
+
+*       Busca Select Options campos
+            o_tvarvc->get_range( EXPORTING suffix = c_vkorg_b2b
+                                   IMPORTING value = r_vkorg_b2b ).
+
+*       Busca Select Options campos
+            o_tvarvc->get_range( EXPORTING suffix = c_vtweg_b2b
+                                   IMPORTING value = r_vtweg_b2b ).
+
+*       Busca Select Options campos
+            o_tvarvc->get_range( EXPORTING suffix = c_bstzd_b2b
+                                   IMPORTING value = r_bstzd_b2b ).
+          ENDIF.
+
+          vg_vbeln = vg_doc.
+          SELECT SINGLE vbeln auart vkorg vtweg ihrez
+          FROM vbak
+          INTO wa_vbak
+          WHERE vbeln = vg_vbeln.
+          IF sy-subrc IS INITIAL.
+            SELECT vbeln posnr werks
+            FROM vbap
+            INTO TABLE it_vbap
+            WHERE vbeln = wa_vbak-vbeln.
+            IF sy-subrc IS INITIAL.
+              SORT it_vbap.
+            ENDIF.
+
+            IF wa_vbak-auart IN r_auart_b2b AND
+               wa_vbak-vkorg IN r_vkorg_b2b AND
+               wa_vbak-vtweg IN r_vtweg_b2b.
+
+              wa_output-mt_reserva_merc_req_sap-p_enc_cd      = wa_vbak-ihrez.
+              READ TABLE it_vbap ASSIGNING <fs_vbap> INDEX 1.
+              IF <fs_vbap> IS ASSIGNED.
+                READ TABLE it_werks_dp ASSIGNING <fs_werks_dp>
+                WITH KEY sistema  = 'SAPLEG'
+                         controle = 'WERKS'
+                         de1      = <fs_vbap>-werks BINARY SEARCH.
+                IF <fs_werks_dp> IS ASSIGNED.
+                  wa_output-mt_reserva_merc_req_sap-p_fil_id_wms = <fs_werks_dp>-para.
+                ENDIF.
+              ENDIF.
+
+              wa_output-mt_reserva_merc_req_sap-p_chamado_por = 'SAP'.
+
+              CREATE OBJECT o_in093.
+              IF o_in093 IS BOUND.
+                TRY .
+                    CALL METHOD o_in093->si_s_reserva_merc_out
+                      EXPORTING
+                        output = wa_output
+                      IMPORTING
+                        input  = wa_input.
+
+                    lr_obs = zcl_proxy_observer=>get_instance( o_in093 ).
+                    lt_return = VALUE #( BASE lt_return
+                      ( lr_obs->get_message_id( abap_true ) )
+                      ( lr_obs->get_message_id( ) ) ).
+
+
+                    READ TABLE wa_input-mt_reserva_merc_res_sap-encomenda-item_encomenda
+                    ASSIGNING <fs_encomenda> INDEX 1.
+                    IF <fs_encomenda> IS ASSIGNED AND
+                       <fs_encomenda>-end_enc_id IS NOT INITIAL.
+                      APPEND INITIAL LINE TO lt_return ASSIGNING <fs_return>.
+                      <fs_return>-type = 'S'.
+
+                      WRITE sy-uzeit TO vg_uzeit USING EDIT MASK '__:__:__'.
+
+                      CONCATENATE vg_uzeit 'Encomenda' wa_vbak-ihrez 'integrada com sucesso no SIS'
+                             INTO <fs_return>-message SEPARATED BY space.
+                    ELSE.
+                      APPEND INITIAL LINE TO lt_return ASSIGNING <fs_return>.
+                      <fs_return>-type = 'E'.
+                      WRITE sy-uzeit TO vg_uzeit USING EDIT MASK '__:__:__'.
+
+                      CONCATENATE vg_uzeit 'Encomenda' wa_vbak-ihrez 'integrada com o SIS sem retorno'
+                             INTO <fs_return>-message SEPARATED BY space.
+                    ENDIF.
+
+                  CATCH cx_ai_system_fault  INTO o_cxf.
+                    CLEAR lt_return.
+                    APPEND INITIAL LINE TO lt_return ASSIGNING <fs_return>.
+                    <fs_return>-type = 'E'.
+                    <fs_return>-message = o_cxf->code.
+
+                    APPEND INITIAL LINE TO lt_return ASSIGNING <fs_return>.
+                    <fs_return>-type = 'E'.
+                    <fs_return>-message = o_cxf->errortext.
+
+                    APPEND VALUE #(
+                      type    = 'E'
+                      message = 'Erro ao executar interface de Reserva de Mercadoria'  )
+                    TO lt_return.
+                ENDTRY.
+
+                IF lt_return[] IS NOT INITIAL.
+                  "IN-093
+                  CALL FUNCTION 'ZFM_PO_MSG_LOG_CREATE'
+                    EXPORTING
+                      iv_extnumber = CONV balnrext( wa_vbak-ihrez )
+                      iv_object    = 'INTERFACES'
+                      iv_subobject = 'SIS_002'
+                      it_msgs      = lt_return
+                      iv_save      = abap_true
+                      iv_display   = abap_false
+                    EXCEPTIONS
+                      create_error = 1
+                      msg_error    = 2
+                      save_error   = 3
+                      OTHERS       = 4.
+                ENDIF.
+              ENDIF.
+            ENDIF.
+          ENDIF.
+        ENDIF.
+      ENDIF.
+      CLEAR: vg_doc.
+    ENDLOOP.
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method ZCL_SD_SIS_EXITS->ELIMINA_REGISTRO
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] IT_LIPS                        TYPE        TT_LIPS
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD elimina_registro.
+    CLEAR mt_ztbsd072.
+
+    LOOP AT it_lips ASSIGNING FIELD-SYMBOL(<fs_lips>).
+      UPDATE ztbsd072
+        SET status093 = '88' status426 = '88'
+        WHERE vbeln = <fs_lips>-vbeln
+          AND posnr = <fs_lips>-posnr.
+    ENDLOOP.
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method ZCL_SD_SIS_EXITS->ENVIA_LIBERACAO_PICKING
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] IT_XLIPS                       TYPE        TAB_LIPSVB
+* | [--->] IT_XLIKP                       TYPE        SHP_LIKP_T
+* | [--->] IT_YLIKP                       TYPE        SHP_YLIKP_T
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD envia_liberacao_picking.
+*--------------------------------------------------------------------*
+* Pular interface 093 quando for o processo da 221
+*--------------------------------------------------------------------*
+    DATA lv_in221 TYPE abap_bool VALUE abap_false.
+    IMPORT in221 TO lv_in221 FROM MEMORY ID 'Z_SIS_IN_221'.
+    CHECK lv_in221 EQ abap_false.
+*--------------------------------------------------------------------*
+
+*--------------------------------------------------------------------*
+* Enviar liberação de Picking para o SIS
+*--------------------------------------------------------------------*
+    DATA:
+      lr_lfart     TYPE RANGE OF likp-lfart,
+      lr_faksp     TYPE RANGE OF lips-faksp,
+      lv_alter     TYPE abap_bool,
+      vl_bismt     TYPE mara-bismt,
+      vg_uzeit     TYPE c LENGTH 8,
+      ls_dados_sis TYPE zcl_sismt_envia_lib_picking_r1,
+      lo_interface TYPE REF TO zcl_sisco_si_s_envia_lib_picki,
+      lo_cxf       TYPE REF TO cx_ai_system_fault.
+
+
+* Seleciona constantes
+    DATA(lo_tvarv) = NEW zcl_ut_tvarvc_handler(
+                         prefix = 'ZCSD_SIS_LIB_PICK'
+                         separator = '_' ).
+
+* Obter demais dados
+    CHECK it_xlips[] IS NOT INITIAL.
+    SELECT vbeln, posnr, ihrez
+      INTO TABLE @DATA(lt_vbkd)
+      FROM vbkd
+      FOR ALL ENTRIES IN @it_xlips
+      WHERE vbeln EQ @it_xlips-vgbel.
+*      AND posnr EQ @it_xlips-vgpos.
+
+    LOOP AT it_xlikp INTO DATA(ls_xlikp).
+      CLEAR: lr_lfart, lr_faksp.
+
+*   Verificar se é Delivery nova ou alteração e obter tipo válido
+      READ TABLE it_ylikp WITH KEY vbeln = ls_xlikp-vbeln TRANSPORTING NO FIELDS.
+      IF sy-subrc NE 0. "Criação - cenário B2C
+        lv_alter = abap_false.
+        lo_tvarv->get_range( EXPORTING
+                               suffix = CONV string( 'LFART_B2C' )
+                             IMPORTING
+                               value  = lr_lfart ).
+      ELSE. "Alteração - cenário B2B
+        lv_alter = abap_true.
+        lo_tvarv->get_range( EXPORTING
+                               suffix = CONV string( 'LFART_B2B' )
+                             IMPORTING
+                               value  = lr_lfart ).
+
+        lo_tvarv->get_range( EXPORTING
+                               suffix = CONV string( 'FAKSP_B2B' )
+                             IMPORTING
+                               value  = lr_faksp ).
+      ENDIF.
+
+*   Verificar se constantes foram cadastradas
+      CHECK lr_lfart[] IS NOT INITIAL.
+
+*   Verificar tipo de documento
+      CHECK ls_xlikp-lfart IN lr_lfart.
+
+      LOOP AT it_xlips INTO DATA(ls_xlips) WHERE vbeln EQ ls_xlikp-vbeln.
+
+*     Obter demais dados
+        TRY.
+            DATA(ls_vbkd) = lt_vbkd[ vbeln = ls_xlips-vgbel ].
+*                                   posnr = ls_xlips-vgpos ].
+          CATCH cx_root.
+            CLEAR ls_vbkd.
+        ENDTRY.
+        IF ls_vbkd-ihrez IS INITIAL.
+          EXIT.
+        ENDIF.
+
+        ls_dados_sis-mt_envia_lib_picking_req-end_enc_id       = ls_vbkd-ihrez.
+        ls_dados_sis-mt_envia_lib_picking_req-enc_dthaceite    = ls_xlikp-erdat.
+        SELECT SINGLE bismt
+        FROM mara
+        INTO vl_bismt
+        WHERE matnr =     ls_xlips-matnr.
+
+        ls_dados_sis-mt_envia_lib_picking_req-end_pro_id       = vl_bismt.
+        ls_dados_sis-mt_envia_lib_picking_req-end_qtde_pedida  = ls_xlips-lfimg.
+
+*     Só será necessário informações de 1 item apenas
+        DATA(lv_ok) = abap_true.
+        EXIT.
+      ENDLOOP.
+
+      IF lv_ok EQ abap_true.
+        EXIT.
+      ENDIF.
+    ENDLOOP.
+
+* ENVIAR AO SIS
+    CHECK lv_ok EQ abap_true.
+    TRY.
+        CREATE OBJECT lo_interface.
+        lo_interface->si_s_envia_lib_picking_out(
+          EXPORTING
+            output = ls_dados_sis
+          IMPORTING
+            input  = DATA(ls_retorno_sis) ).
+
+        DATA: lt_return            TYPE bapiret2_tab.
+
+        DATA(lr_obs) = zcl_proxy_observer=>get_instance( lo_interface ).
+        lt_return = VALUE #( BASE lt_return
+          ( lr_obs->get_message_id( abap_true ) )
+          ( lr_obs->get_message_id( ) ) ).
+
+        IF ls_retorno_sis-mt_envia_lib_picking_res-result-codigo EQ '200'.
+          CLEAR vg_uzeit.
+          WRITE sy-uzeit TO vg_uzeit USING EDIT MASK '__:__:__'.
+
+          APPEND INITIAL LINE TO lt_return ASSIGNING FIELD-SYMBOL(<fs_return>).
+          <fs_return>-type    = 'S'.
+          CONCATENATE vg_uzeit
+                      '-'
+                      'Liberação de picking da encomenda'
+                      ls_vbkd-ihrez
+                      'enviada com'
+                      ls_retorno_sis-mt_envia_lib_picking_res-result-description
+                 INTO <fs_return>-message SEPARATED BY space.
+
+          APPEND INITIAL LINE TO lt_return ASSIGNING <fs_return>.
+          <fs_return>-type    = 'S'.
+          CONCATENATE 'IN-426 - ET1 - SIS->SAP - ENCOMENDA:'
+                      ls_vbkd-ihrez
+                 INTO <fs_return>-message SEPARATED BY space.
+
+        ELSE.
+          CLEAR vg_uzeit.
+          WRITE sy-uzeit TO vg_uzeit USING EDIT MASK '__:__:__'.
+
+          APPEND INITIAL LINE TO lt_return ASSIGNING <fs_return>.
+          <fs_return>-type    = 'E'.
+          CONCATENATE vg_uzeit
+                      '-'
+                      'Liberação de picking da encomenda'
+                      ls_vbkd-ihrez
+                      'enviada com'
+                      ls_retorno_sis-mt_envia_lib_picking_res-result-description
+                 INTO <fs_return>-message SEPARATED BY space.
+
+          APPEND INITIAL LINE TO lt_return ASSIGNING <fs_return>.
+          <fs_return>-type    = 'E'.
+          CONCATENATE 'IN-426 - ET1 - SIS->SAP - ENCOMENDA:'
+                      ls_vbkd-ihrez
+                 INTO <fs_return>-message SEPARATED BY space.
+
+        ENDIF.
+
+      CATCH cx_ai_system_fault INTO lo_cxf.
+
+        APPEND INITIAL LINE TO lt_return ASSIGNING <fs_return>.
+        <fs_return>-type    = 'E'.
+        CONCATENATE 'IN-426 - ET1 - SIS->SAP - ENCOMENDA:'
+                    ls_vbkd-ihrez
+               INTO <fs_return>-message SEPARATED BY space.
+
+        APPEND INITIAL LINE TO lt_return ASSIGNING <fs_return>.
+        <fs_return>-type = 'E'.
+        <fs_return>-message = lo_cxf->code.
+
+        APPEND INITIAL LINE TO lt_return ASSIGNING <fs_return>.
+        <fs_return>-type = 'E'.
+        <fs_return>-message = lo_cxf->errortext.
+
+        APPEND INITIAL LINE TO lt_return ASSIGNING <fs_return>.
+        <fs_return>-type = 'E'.
+        <fs_return>-message = 'Erro ao executar interface para Enviar Liberação de Picking'.
+
+    ENDTRY.
+
+    IF lt_return[] IS NOT INITIAL.
+      DATA(lv_extnumber) = CONV balnrext( ls_vbkd-ihrez ).
+
+      "IN-426
+      CALL FUNCTION 'ZFM_PO_MSG_LOG_CREATE'
+        EXPORTING
+          iv_extnumber = lv_extnumber
+          iv_object    = 'INTERFACES'
+          iv_subobject = 'SIS_004'
+          it_msgs      = lt_return
+          iv_save      = abap_true
+          iv_display   = abap_false
+        EXCEPTIONS
+          create_error = 1
+          msg_error    = 2
+          save_error   = 3
+          OTHERS       = 4.
+    ENDIF.
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Private Method ZCL_SD_SIS_EXITS->EXECUTA_LIBERACAO
+* +-------------------------------------------------------------------------------------------------+
+* | [<-->] ES_ZTBSD072                    TYPE        ZTBSD072
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD executa_liberacao.
+    CONSTANTS:
+      co_method_name TYPE seoclname VALUE 'SI_S_ENVIA_LIB_PICKING_OUT'.
+
+    DATA:
+      lt_parmbind    TYPE abap_parmbind_tab,
+      lr_output      TYPE REF TO data,
+      lv_method_name TYPE seoclname,
+      ls_return      LIKE LINE OF mt_return.
+
+    DATA:
+      ls_input  TYPE zcl_sismt_envia_lib_picking_re,
+      ls_output TYPE zcl_sismt_envia_lib_picking_r1.
+
+    preenche_liberacao(
+      EXPORTING
+        i_ztbsd072 = es_ztbsd072
+      IMPORTING
+        et_parmbind = lt_parmbind
+        es_input    = ls_input
+        es_output   = ls_output ).
+
+    TRY.
+        m_proxy->execute(
+          EXPORTING method_name  = co_method_name
+          CHANGING  parmbind_tab = lt_parmbind ).
+        processa_log( CONV #( es_ztbsd072-ihrez ) ).
+
+      CATCH cx_ai_system_fault cx_ai_application_fault.
+        mt_return = VALUE #( BASE mt_return
+          ( type = 'E' field = es_ztbsd072-ihrez
+            message = |IN-426 - ET1 - SIS->SAP - ENCOMENDA: { es_ztbsd072-ihrez }| )
+          ( type = 'E' field = es_ztbsd072-ihrez
+            message = 'Erro de execução de liberaão de picking.' ) ).
+    ENDTRY.
+
+    DATA(lv_type) = SWITCH #( ls_input-mt_envia_lib_picking_res-result-codigo
+      WHEN '200' THEN 'S'
+      ELSE 'E' ).
+
+    es_ztbsd072-status426 = SWITCH #( lv_type WHEN 'S' THEN co_sucesso ).
+
+    DATA(lv_uzeit) = |{ sy-uzeit TIME = ISO }|.
+    mt_return = VALUE #( BASE mt_return
+      ( type    = lv_type
+        field   = es_ztbsd072-ihrez
+        message = |{ lv_uzeit } - Liberação de picking de encomenda { es_ztbsd072-ihrez } | &
+                  | enviada com { ls_input-mt_envia_lib_picking_res-result-description }| )
+      ( type    = lv_type
+        field   = es_ztbsd072-ihrez
+        message = |IN-426 - ET1 - SIS->SAP - ENCOMENDA: { es_ztbsd072-ihrez }| ) ).
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Private Method ZCL_SD_SIS_EXITS->EXECUTA_RESERVA
+* +-------------------------------------------------------------------------------------------------+
+* | [<-->] ES_ZTBSD072                    TYPE        ZTBSD072
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD executa_reserva.
+    CONSTANTS:
+      co_method_name TYPE seoclname VALUE 'SI_S_RESERVA_MERC_OUT'.
+
+    DATA:
+      lt_parmbind    TYPE abap_parmbind_tab,
+      lr_output      TYPE REF TO data,
+      lv_method_name TYPE seoclname,
+      ls_return      LIKE LINE OF mt_return.
+
+    DATA:
+      ls_input  TYPE zcl_sismt_reserva_merc_res_sap,
+      ls_output TYPE zcl_sismt_reserva_merc_req_sap.
+
+    TRY.
+        preenche_reserva(
+          EXPORTING
+            i_ztbsd072 = es_ztbsd072
+          IMPORTING
+            et_parmbind = lt_parmbind
+            es_input    = ls_input
+            es_output   = ls_output ).
+
+        m_proxy->execute(
+          EXPORTING method_name  = co_method_name
+          CHANGING  parmbind_tab = lt_parmbind ).
+        processa_log( CONV #( es_ztbsd072-ihrez ) ).
+
+      CATCH cx_ai_system_fault cx_ai_application_fault cx_sy_itab_line_not_found.
+        mt_return = VALUE #( BASE mt_return
+          ( type    = 'E'
+            field   = es_ztbsd072-ihrez
+            message = 'Erro de execução de reserva de mercadoria.' ) ).
+    ENDTRY.
+
+    TRY.
+        DATA(lv_type) = SWITCH #( ls_input-mt_reserva_merc_res_sap-encomenda-item_encomenda[ 1 ]-end_enc_id
+          WHEN space THEN 'E'
+          ELSE 'S' ).
+      CATCH cx_sy_itab_line_not_found.
+        lv_type = 'E'.
+    ENDTRY.
+
+    DATA(lv_msg) = SWITCH #( lv_type
+      WHEN 'S' THEN |com sucesso|
+      ELSE |sem retorno| ).
+
+    es_ztbsd072-status093 = SWITCH #( lv_type when 'S' then co_sucesso ).
+
+    DATA(lv_uzeit) = |{ sy-uzeit TIME = ISO }|.
+    mt_return = VALUE #( BASE mt_return
+      ( type    = lv_type
+        field   = es_ztbsd072-ihrez
+        message = |{ lv_uzeit } - Encomenda { es_ztbsd072-ihrez } integrada { lv_msg } no SIS.| ) ).
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Static Public Method ZCL_SD_SIS_EXITS=>GET_INSTANCE
+* +-------------------------------------------------------------------------------------------------+
+* | [<-()] R_INSTANCE                     TYPE REF TO ZCL_SD_SIS_EXITS
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD get_instance.
+    IF m_instance IS INITIAL.
+      m_instance = NEW #( ).
+    ENDIF.
+    r_instance = m_instance.
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Private Method ZCL_SD_SIS_EXITS->INICIALIZA_PROXY
+* +-------------------------------------------------------------------------------------------------+
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD inicializa_proxy.
+    CASE m_processo.
+      WHEN co_liberacao.
+        m_proxy = NEW zcl_sisco_si_s_envia_lib_picki( ).
+      WHEN co_reserva.
+        m_proxy = NEW zcl_sisco_si_s_reserva_merc_ou( ).
+    ENDCASE.
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Private Method ZCL_SD_SIS_EXITS->PREENCHE_LIBERACAO
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] I_ZTBSD072                     TYPE        ZTBSD072
+* | [<---] ET_PARMBIND                    TYPE        ABAP_PARMBIND_TAB
+* | [<---] ES_INPUT                       TYPE        ZCL_SISMT_ENVIA_LIB_PICKING_RE
+* | [<---] ES_OUTPUT                      TYPE        ZCL_SISMT_ENVIA_LIB_PICKING_R1
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD preenche_liberacao.
+    CONSTANTS:
+      co_sap    TYPE string VALUE `SAP`,
+      co_input  TYPE abap_parmbind-name VALUE 'INPUT',
+      co_output TYPE abap_parmbind-name VALUE 'OUTPUT'.
+
+    es_output = VALUE #(
+      mt_envia_lib_picking_req-end_enc_id      = i_ztbsd072-ihrez
+      mt_envia_lib_picking_req-enc_dthaceite   = i_ztbsd072-erdat
+      mt_envia_lib_picking_req-end_pro_id      = i_ztbsd072-bismt
+      mt_envia_lib_picking_req-end_qtde_pedida = i_ztbsd072-lfimg ).
+
+    et_parmbind = VALUE #( (
+        name  = co_input
+        kind  = cl_abap_objectdescr=>importing
+        value = REF #( es_input ) )
+      ( name  = co_output
+        kind  = cl_abap_objectdescr=>exporting
+        value = REF #( es_output ) ) ).
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Private Method ZCL_SD_SIS_EXITS->PREENCHE_RESERVA
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] I_ZTBSD072                     TYPE        ZTBSD072
+* | [<---] ET_PARMBIND                    TYPE        ABAP_PARMBIND_TAB
+* | [<---] ES_INPUT                       TYPE        ZCL_SISMT_RESERVA_MERC_RES_SAP
+* | [<---] ES_OUTPUT                      TYPE        ZCL_SISMT_RESERVA_MERC_REQ_SAP
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD preenche_reserva.
+    CONSTANTS:
+      co_sap    TYPE string VALUE `SAP`,
+      co_input  TYPE abap_parmbind-name VALUE 'INPUT',
+      co_output TYPE abap_parmbind-name VALUE 'OUTPUT'.
+
+    es_output = VALUE #(
+      mt_reserva_merc_req_sap-p_enc_cd      = i_ztbsd072-ihrez
+      mt_reserva_merc_req_sap-p_fil_id_wms  = mt_ztbt002dp[ KEY primary_key COMPONENTS de1 = i_ztbsd072-werks ]-para
+      mt_reserva_merc_req_sap-p_chamado_por = co_sap ).
+
+    et_parmbind = VALUE #( (
+        name  = co_input
+        kind  = cl_abap_objectdescr=>importing
+        value = REF #( es_input ) )
+      ( name  = co_output
+        kind  = cl_abap_objectdescr=>exporting
+        value = REF #( es_output ) ) ).
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Private Method ZCL_SD_SIS_EXITS->PROCESSA_LOG
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] I_FIELD                        TYPE        BAPIRET2-FIELD
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD processa_log.
+    DATA:
+      lt_return LIKE mt_return.
+
+    IF mr_observer IS INITIAL.
+      mr_observer = zcl_proxy_observer=>get_instance( m_proxy ).
+    ENDIF.
+
+    lt_return = VALUE #(
+      ( mr_observer->get_message_id( abap_true ) )
+      ( mr_observer->get_message_id( ) ) ).
+    MODIFY lt_return FROM VALUE #( field = i_field ) TRANSPORTING field WHERE field IS INITIAL.
+
+    mt_return = VALUE #( BASE mt_return ( LINES OF lt_return ) ).
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Private Method ZCL_SD_SIS_EXITS->SALVA_LOG
+* +-------------------------------------------------------------------------------------------------+
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD salva_log.
+    DATA:
+          lt_return TYPE bapiret2_tab.
+
+    DATA(lv_subobj) = COND balsubobj(
+      WHEN m_processo = co_liberacao THEN 'SIS_004'
+      WHEN m_processo = co_reserva   THEN 'SIS_002' ).
+
+    LOOP AT mt_return ASSIGNING FIELD-SYMBOL(<fs_return>)
+      GROUP BY <fs_return>-field.
+
+      CLEAR lt_return.
+
+      lt_return = FILTER #( mt_return USING KEY ks_1 WHERE field = <fs_return>-field ).
+
+      CALL FUNCTION 'ZFM_PO_MSG_LOG_CREATE'
+        EXPORTING
+          iv_extnumber = CONV balnrext( <fs_return>-field )
+          iv_object    = 'INTERFACES'
+          iv_subobject = lv_subobj
+          it_msgs      = lt_return
+          iv_save      = abap_true
+          iv_display   = abap_false
+        EXCEPTIONS
+          create_error = 1
+          msg_error    = 2
+          save_error   = 3
+          OTHERS       = 4.
+    ENDLOOP.
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Private Method ZCL_SD_SIS_EXITS->SALVA_REGISTRO
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] IT_LIPS                        TYPE        TT_LIPS
+* | [--->] IT_MARA                        TYPE        TY_T_MARA
+* | [--->] I_IHREZ                        TYPE        ZTBSD072-IHREZ
+* | [--->] I_LIKP                         TYPE        LIKP
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD salva_registro.
+    CHECK i_likp  IS NOT INITIAL
+      AND it_lips IS NOT INITIAL
+      AND i_ihrez IS NOT INITIAL
+      AND it_mara IS NOT INITIAL.
+
+    CLEAR mt_ztbsd072.
+
+    LOOP AT it_lips ASSIGNING FIELD-SYMBOL(<fs_lips>).
+      TRY.
+          mt_ztbsd072 = VALUE #( BASE mt_ztbsd072
+            ( vbeln = <fs_lips>-vbeln
+              posnr = <fs_lips>-posnr
+              ihrez = i_ihrez
+              werks = <fs_lips>-werks
+              bismt = it_mara[ KEY primary_key COMPONENTS matnr = <fs_lips>-matnr ]-bismt
+              erdat = i_likp-erdat
+              lfimg = <fs_lips>-lfimg
+              vrkme = <fs_lips>-vrkme ) ).
+        CATCH cx_sy_itab_line_not_found.
+      ENDTRY.
+    ENDLOOP.
+
+    IF mt_ztbsd072 IS NOT INITIAL.
+      INSERT ztbsd072 FROM TABLE @mt_ztbsd072.
+    ENDIF.
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Private Method ZCL_SD_SIS_EXITS->SELECIONA_CONTROLE
+* +-------------------------------------------------------------------------------------------------+
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD seleciona_controle.
+    CHECK m_processo IS NOT INITIAL.
+
+    seleciona_de_para( ).
+
+    CASE m_processo.
+      WHEN co_liberacao.
+        seleciona_liberacao( ).
+      WHEN co_reserva.
+        seleciona_reserva( ).
+    ENDCASE.
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Private Method ZCL_SD_SIS_EXITS->SELECIONA_DADOS
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] IT_LIPS                        TYPE        TT_LIPS
+* | [<---] E_IHREZ                        TYPE        ZTBSD072-IHREZ
+* | [<---] ET_MARA                        TYPE        TY_T_MARA
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD seleciona_dados.
+    TRY.
+        e_ihrez = seleciona_vbak( it_lips[ 1 ]-vgbel ).
+        et_mara = seleciona_mara( it_lips ).
+      CATCH cx_sy_itab_line_not_found.
+    ENDTRY.
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Private Method ZCL_SD_SIS_EXITS->SELECIONA_DE_PARA
+* +-------------------------------------------------------------------------------------------------+
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD seleciona_de_para.
+    CONSTANTS:
+      co_sapleg TYPE ztbt002dp-sistema VALUE 'SAPLEG',
+      co_werks  TYPE ztbt002dp-controle VALUE 'WERKS'.
+
+    SELECT de1, para
+      FROM ztbt002dp
+      INTO TABLE @mt_ztbt002dp
+      WHERE sistema  = @co_sapleg
+        AND controle = @co_werks.
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Private Method ZCL_SD_SIS_EXITS->SELECIONA_LIBERACAO
+* +-------------------------------------------------------------------------------------------------+
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD seleciona_liberacao.
+    SELECT *
+      FROM ztbsd072
+      INTO TABLE @mt_ztbsd072
+      WHERE vbeln IN @mt_vbeln
+        AND ihrez IN @mt_ihrez
+        AND erdat IN @mt_erdat
+        AND status426 <> @co_sucesso.
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Private Method ZCL_SD_SIS_EXITS->SELECIONA_MARA
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] IT_LIPS                        TYPE        TT_LIPS
+* | [<-()] RT_MARA                        TYPE        TY_T_MARA
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD seleciona_mara.
+    CHECK it_lips IS NOT INITIAL.
+
+    SELECT DISTINCT matnr, bismt
+      FROM mara
+      INTO TABLE @rt_mara
+      FOR ALL ENTRIES IN @it_lips
+      WHERE matnr = @it_lips-matnr.
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Private Method ZCL_SD_SIS_EXITS->SELECIONA_RESERVA
+* +-------------------------------------------------------------------------------------------------+
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD seleciona_reserva.
+    SELECT *
+      FROM ztbsd072
+      INTO TABLE @mt_ztbsd072
+      WHERE vbeln IN @mt_vbeln
+        AND ihrez IN @mt_ihrez
+        AND erdat IN @mt_erdat
+        AND status093 <> @co_sucesso.
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Private Method ZCL_SD_SIS_EXITS->SELECIONA_VBAK
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] I_VBELN                        TYPE        VBAK-VBELN
+* | [<-()] R_IHREZ                        TYPE        VBAK-IHREZ
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD seleciona_vbak.
+    CHECK i_vbeln IS NOT INITIAL.
+
+    SELECT SINGLE ihrez
+      FROM vbak
+      INTO @r_ihrez
+      WHERE vbeln = @i_vbeln.
+  ENDMETHOD.
+ENDCLASS.
