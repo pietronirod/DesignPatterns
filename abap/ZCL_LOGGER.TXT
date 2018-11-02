@@ -169,8 +169,8 @@ CLASS ZCL_LOGGER IMPLEMENTATION.
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD zif_logger~recupera_mensagens.
     CONSTANTS:
-      co_timeto   TYPE t VALUE '000000',
-      co_timefrom TYPE t VALUE '235959'.
+      co_timeto   TYPE t VALUE '235959',
+      co_timefrom TYPE t VALUE '000000'.
 
     DATA:
       lt_header    LIKE rt_log-header,
