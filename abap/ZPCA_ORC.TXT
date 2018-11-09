@@ -1,0 +1,406 @@
+*&---------------------------------------------------------------------*
+*& Report ZPCA_ORC
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zpca_orc.
+
+TABLES: ztbca001, ztbca002, ztbca003.
+
+CLASS lcl_report DEFINITION CREATE PRIVATE.
+  PUBLIC SECTION.
+    CONSTANTS:
+      co_date TYPE c LENGTH 10 VALUE 'DATE',
+      co_from TYPE c LENGTH 10 VALUE 'P_FROM',
+      co_to   TYPE c LENGTH 10 VALUE 'P_TO'.
+
+    TYPES:
+      BEGIN OF ty_s_data,
+        id   TYPE c LENGTH 10,
+        data TYPE REF TO data,
+      END OF ty_s_data,
+      ty_t_proc   TYPE RANGE OF ztbca003-process,
+      ty_t_step   TYPE RANGE OF ztbca003-step,
+      ty_t_objkey TYPE RANGE OF ztbca001-obj_key,
+      ty_t_status TYPE RANGE OF ztbca002-status,
+      ty_t_data   TYPE STANDARD TABLE OF ty_s_data
+        WITH NON-UNIQUE KEY id
+        WITH UNIQUE SORTED KEY ks_1 COMPONENTS id.
+
+    CLASS-METHODS:
+      get_instance
+        IMPORTING i_proc            TYPE ty_t_proc
+                  i_step            TYPE ty_t_step
+                  i_objkey          TYPE ty_t_objkey
+                  i_status          TYPE ty_t_status
+                  i_date_from       TYPE d
+                  i_date_to         TYPE d
+        RETURNING VALUE(r_instance) TYPE REF TO lcl_report,
+      validate
+        IMPORTING i_field LIKE co_date
+                  it_data TYPE ty_t_data,
+      set_date_from RETURNING VALUE(r_from) TYPE d.
+
+    METHODS:
+      execute.
+
+  PRIVATE SECTION.
+    CLASS-DATA: m_instance TYPE REF TO lcl_report.
+
+    DATA:
+      mt_proc             TYPE ty_t_proc,
+      mt_step             TYPE ty_t_step,
+      mt_objkey           TYPE ty_t_objkey,
+      mt_status           TYPE ty_t_status,
+      mt_date             TYPE RANGE OF d,
+      mt_name_range_pairs TYPE if_salv_service_types=>yt_named_ranges,
+      m_alv_ida           TYPE REF TO if_salv_gui_table_ida,
+      m_handler           TYPE REF TO lcl_helper.
+
+    CLASS-METHODS:
+      validate_dates
+        IMPORTING i_date_to   TYPE REF TO data
+                  i_date_from TYPE REF TO data.
+
+    METHODS:
+      constructor
+        IMPORTING i_proc      TYPE ty_t_proc
+                  i_step      TYPE ty_t_step
+                  i_objkey    TYPE ty_t_objkey
+                  i_status    TYPE ty_t_status
+                  i_date_from TYPE d
+                  i_date_to   TYPE d,
+      activate_hotspot,
+      add_select_options,
+      set_sort_order,
+      set_available_fields,
+      set_visible_fields,
+      set_handler,
+      set_field_catalog,
+      set_toolbar.
+ENDCLASS.
+
+CLASS lcl_helper DEFINITION.
+  PUBLIC SECTION.
+*    INTERFACES if_salv_ida_calc_field_handler.
+
+    CLASS-METHODS:
+      class_constructor,
+      handle_hotspot FOR EVENT cell_action OF if_salv_gui_field_display_opt
+        IMPORTING ev_field_name eo_row_data.
+
+  PRIVATE SECTION.
+    TYPES:
+*      BEGIN OF lty_s_icon_rep,
+*        icon TYPE c LENGTH 4,
+*      END OF lty_s_icon_rep,
+      BEGIN OF lty_s_table_line.
+        INCLUDE TYPE: zcds_orchreport.", lty_s_icon_rep.
+    TYPES: END OF lty_s_table_line,
+
+    BEGIN OF lty_s_ztbca003,
+      process      TYPE ztbca003-process,
+      step         TYPE ztbca003-step,
+      tcode        TYPE ztbca003-tcode,
+      parameter_id TYPE ztbca003-parameter_id,
+    END OF lty_s_ztbca003,
+    lty_t_ztbca003 TYPE SORTED TABLE OF lty_s_ztbca003
+          WITH NON-UNIQUE KEY process step.
+*
+*      BEGIN OF lty_s_icon,
+*        name TYPE icon-name,
+*        id   TYPE icon-id,
+*      END OF lty_s_icon,
+*      lty_t_icon TYPE SORTED TABLE OF lty_s_icon
+*        WITH NON-UNIQUE KEY name.
+*
+    CLASS-DATA: mt_ztbca003 TYPE lty_t_ztbca003.
+*                mt_icon     TYPE lty_t_icon.
+    CLASS-METHODS:
+*      select_icons,
+      select_ztbca003,
+      process_drill_down
+        IMPORTING i_field       TYPE c
+                  is_table_line TYPE lty_s_table_line,
+      call_transaction
+        IMPORTING is_table_line TYPE lty_s_table_line,
+      submit_applog
+        IMPORTING is_table_line TYPE lty_s_table_line.
+ENDCLASS.
+
+DATA: lr_report TYPE REF TO lcl_report.
+
+SELECTION-SCREEN BEGIN OF BLOCK bl1 WITH FRAME TITLE TEXT-t01.
+SELECT-OPTIONS:
+  s_proc  FOR ztbca003-process MATCHCODE OBJECT zshca001,
+  s_step  FOR ztbca003-step,
+  s_obkey FOR ztbca001-obj_key.
+SELECTION-SCREEN END OF BLOCK bl1.
+SELECTION-SCREEN BEGIN OF BLOCK bl3 WITH FRAME TITLE TEXT-t03.
+PARAMETERS:
+  p_from TYPE dats OBLIGATORY,
+  p_to   TYPE dats OBLIGATORY.
+SELECTION-SCREEN END OF BLOCK bl3.
+SELECTION-SCREEN BEGIN OF BLOCK bl2 WITH FRAME TITLE TEXT-t02.
+SELECT-OPTIONS:
+  s_status FOR ztbca002-status.
+SELECTION-SCREEN END OF BLOCK bl2.
+
+INITIALIZATION.
+  p_from = lcl_report=>set_date_from( ).
+  p_to = sy-datum.
+
+AT SELECTION-SCREEN.
+  lcl_report=>validate(
+    i_field = lcl_report=>co_date
+    it_data = VALUE #(
+      ( id = lcl_report=>co_from data = REF #( p_from ) )
+      ( id = lcl_report=>co_to   data = REF #( p_to ) ) ) ).
+
+START-OF-SELECTION.
+  lr_report = lcl_report=>get_instance(
+                i_proc      = s_proc[]
+                i_step      = s_step[]
+                i_objkey    = s_obkey[]
+                i_status    = s_status[]
+                i_date_from = p_from
+                i_date_to   = p_to ).
+
+  lr_report->execute( ).
+
+CLASS lcl_report IMPLEMENTATION.
+  METHOD constructor.
+    mt_proc   = i_proc.
+    mt_step   = i_step.
+    mt_objkey = i_objkey.
+    mt_status = i_status.
+    mt_date   = VALUE #( ( sign = 'I' option = 'BT' low = i_date_from high = i_date_to ) ).
+
+    m_alv_ida = cl_salv_gui_table_ida=>create_for_cds_view(
+                iv_cds_view_name               = 'ZCDSCA002' ).
+*                io_calc_field_handler          = NEW lcl_helper( ) ).
+  ENDMETHOD.
+  METHOD get_instance.
+    IF m_instance IS INITIAL.
+      m_instance = NEW #(
+                i_proc      = i_proc
+                i_step      = i_step
+                i_objkey    = i_objkey
+                i_status    = i_status
+                i_date_from = i_date_from
+                i_date_to   = i_date_to ).
+    ENDIF.
+    r_instance = m_instance.
+  ENDMETHOD.
+  METHOD validate.
+    CASE i_field.
+      WHEN lcl_report=>co_date.
+        validate_dates(
+            i_date_to   = it_data[ KEY ks_1 COMPONENTS id = lcl_report=>co_to ]-data
+            i_date_from = it_data[ KEY ks_1 COMPONENTS id = lcl_report=>co_from ]-data
+        ).
+    ENDCASE.
+  ENDMETHOD.
+  METHOD set_date_from.
+    r_from = |{ sy-datum(6) }01|.
+    r_from = r_from - 1.
+    r_from = |{ r_from(6) }{ sy-datum+6(2) }|.
+  ENDMETHOD.
+  METHOD validate_dates.
+    FIELD-SYMBOLS: <fs_from> TYPE d,
+                   <fs_to>   TYPE d.
+
+    ASSIGN: i_date_from->* TO <fs_from>,
+            i_date_to->*   TO <fs_to>.
+
+    IF <fs_from> IS INITIAL AND <fs_to> IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    IF <fs_to> IS NOT INITIAL AND <fs_from> > <fs_to>.
+      MESSAGE 'Intervalo de datas inválido'(e01) TYPE 'E'.
+    ENDIF.
+  ENDMETHOD.
+  METHOD execute.
+    set_toolbar( ).
+    set_available_fields( ).
+    set_visible_fields( ).
+    set_field_catalog( ).
+    add_select_options( ).
+    activate_hotspot( ).
+    set_sort_order( ).
+    set_handler( ).
+    m_alv_ida->fullscreen( )->display( ).
+  ENDMETHOD.
+  METHOD set_handler.
+    m_handler = NEW #( m_instance ).
+    SET HANDLER:
+      m_handler->handle_hotspot FOR m_alv_ida->field_catalog( )->display_options( ),
+      m_handler->handle_toolbar FOR m_alv_ida->toolbar( ).
+  ENDMETHOD.
+  METHOD activate_hotspot.
+    TRY.
+        m_alv_ida->field_catalog( )->display_options( )->display_as_link_to_action( 'OBJ_KEY' ).
+        m_alv_ida->field_catalog( )->display_options( )->display_as_link_to_action( 'SAP_DOC' ).
+*        SET HANDLER lcl_helper=>handle_hotspot
+*          FOR m_alv_ida->field_catalog( )->display_options( ).
+      CATCH cx_salv_ida_unknown_name cx_salv_call_after_1st_display.
+    ENDTRY.
+  ENDMETHOD.
+  METHOD set_sort_order.
+    m_alv_ida->default_layout( )->set_sort_order( VALUE #(
+      ( field_name = 'OBJ_KEY' descending = abap_true )"is_grouped = abap_true )
+      ( field_name = 'PROCESS' )
+      ( field_name = 'STEP_NUMBER' ) ) ).
+  ENDMETHOD.
+  METHOD set_field_catalog.
+    m_alv_ida->field_catalog( )->set_field_header_texts(
+        iv_field_name  = 'ICON'
+        iv_header_text = 'Status Processo'(h01)  ).
+  ENDMETHOD.
+  METHOD add_select_options.
+    DATA lr_collector TYPE REF TO cl_salv_range_tab_collector.
+
+    lr_collector = NEW #( ).
+
+    lr_collector->add_ranges_for_name( iv_name = 'OBJ_KEY'    it_ranges = mt_objkey ).
+    lr_collector->add_ranges_for_name( iv_name = 'PROCESS'    it_ranges = mt_proc ).
+    lr_collector->add_ranges_for_name( iv_name = 'STEP'       it_ranges = mt_step ).
+    lr_collector->add_ranges_for_name( iv_name = 'STEPSTATUS' it_ranges = mt_status ).
+    lr_collector->add_ranges_for_name( iv_name = 'STEP_DATE'   it_ranges = mt_date ).
+
+    lr_collector->get_collected_ranges( IMPORTING et_named_ranges = mt_name_range_pairs ).
+    m_alv_ida->set_select_options( it_ranges = mt_name_range_pairs ).
+  ENDMETHOD.
+  METHOD set_available_fields.
+    DATA: lts_field_names TYPE if_salv_gui_types_ida=>yts_field_name,
+          lr_field_names  TYPE RANGE OF fieldname.
+
+    m_alv_ida->field_catalog( )->get_all_fields( IMPORTING ets_field_names = lts_field_names ).
+
+    lr_field_names = VALUE #(
+        ( sign = 'I' option = 'EQ' low = 'MANDT' )
+        ( sign = 'I' option = 'EQ' low = 'MAINSTATUS' )
+        ( sign = 'I' option = 'EQ' low = 'STEPSTATUS' )
+        ( sign = 'I' option = 'EQ' low = 'GUID_OBJ' )
+        ( sign = 'I' option = 'EQ' low = 'GUID_PROC' ) ).
+
+    DELETE lts_field_names WHERE table_line IN lr_field_names.
+
+    m_alv_ida->field_catalog( )->set_available_fields( lts_field_names ).
+  ENDMETHOD.
+  METHOD set_visible_fields.
+    m_alv_ida->default_layout( )->set_visible_fields( VALUE #(
+      ( 'ICON' ) ( 'OBJ_KEY' ) ( 'PROCESS' ) ( 'STEP' )
+      ( 'MAIN_DESCRIPTION' )
+      ( 'STEP_DESCRIPTION' ) ( 'STEP_DATE' ) ( 'STEP_TIME' )
+      ( 'SAP_DOC' ) ) ).
+  ENDMETHOD.
+  METHOD set_toolbar.
+    m_alv_ida->toolbar( )->add_button(
+      EXPORTING
+        iv_fcode                       = 'UPDATE'
+        iv_icon                        = icon_refresh
+        iv_text                        = 'Atualizar Dados'(t04)
+        iv_quickinfo                   = 'Atualizar Dados'(t04)
+        iv_before_standard_functions   = abap_true ).
+    m_alv_ida->toolbar( )->add_separator( abap_true ).
+
+    SET HANDLER lcl_helper=>toolbar_function_selected FOR lo_alv_display->toolbar( ).
+  ENDMETHOD.
+ENDCLASS.
+
+CLASS lcl_helper IMPLEMENTATION.
+  METHOD handle_hotspot.
+    DATA ls_table_line TYPE lty_s_table_line.
+
+    TRY.
+        eo_row_data->get_row_data(
+          EXPORTING iv_request_type = if_salv_gui_selection_ida=>cs_request_type-all_fields
+          IMPORTING es_row          = ls_table_line ).
+
+      CATCH cx_salv_ida_contract_violation cx_salv_ida_sel_row_deleted.
+    ENDTRY.
+
+    process_drill_down( i_field = ev_field_name is_table_line = ls_table_line ).
+  ENDMETHOD.
+  METHOD process_drill_down.
+
+    CASE i_field.
+      WHEN 'OBJ_KEY'.
+        submit_applog( is_table_line ).
+      WHEN 'SAP_DOC'.
+        call_transaction( is_table_line ).
+    ENDCASE.
+  ENDMETHOD.
+  METHOD call_transaction.
+    CHECK is_table_line-sap_doc IS NOT INITIAL.
+
+    TRY.
+        DATA(lr_ztbca003) = REF lty_s_ztbca003( mt_ztbca003[ KEY primary_key COMPONENTS
+          process = is_table_line-process
+          step    = is_table_line-step ] ).
+      CATCH cx_sy_itab_line_not_found.
+    ENDTRY.
+
+    IF lr_ztbca003->tcode IS NOT INITIAL
+      AND lr_ztbca003->parameter_id IS NOT INITIAL.
+      SET PARAMETER ID lr_ztbca003->parameter_id FIELD is_table_line-sap_doc.
+      CALL TRANSACTION lr_ztbca003->tcode AND SKIP FIRST SCREEN.
+    ENDIF.
+  ENDMETHOD.
+  METHOD submit_applog.
+    DATA lt_rspar TYPE STANDARD TABLE OF rsparams.
+
+    lt_rspar = VALUE #(
+      ( selname = 'S_EXTN'   kind = 'S' sign = 'I' option = 'EQ' low = is_table_line-obj_key )
+      ( selname = 'P_DT_INI' kind = 'P' low = is_table_line-main_date )
+      ( selname = 'P_DT_FIM' kind = 'P' low = is_table_line-step_date ) ).
+
+    SUBMIT zp_applog_tabela WITH SELECTION-TABLE lt_rspar AND RETURN.
+  ENDMETHOD.
+  METHOD class_constructor.
+    select_ztbca003( ).
+*    select_icons( ).
+  ENDMETHOD.
+  METHOD select_ztbca003.
+    SELECT process, step, tcode, parameter_id
+      FROM ztbca003
+      INTO TABLE @mt_ztbca003.
+  ENDMETHOD.
+*  METHOD select_icons.
+*    SELECT DISTINCT icon~name, icon~id
+*      FROM ztbca004
+*      LEFT OUTER JOIN icon
+*        ON ztbca004~iconname = icon~name
+*      INTO TABLE @mt_icon.
+*  ENDMETHOD.
+*  METHOD if_salv_ida_calc_field_handler~get_calc_field_structure.
+*    ro_calc_field_structure ?= cl_abap_typedescr=>describe_by_name( 'LTY_S_ICON_REP' ).
+*  ENDMETHOD.
+*  METHOD if_salv_ida_calc_field_handler~calculate_line.
+*    DATA: ls_calc_field TYPE lty_s_icon_rep,
+*          ls_zcdsca002  TYPE zcds_orchreport.
+*
+*    ls_zcdsca002 = is_data_base_line.
+*
+*    TRY.
+*        ls_calc_field-icon = mt_icon[ KEY primary_key COMPONENTS
+*          name = ls_zcdsca002-iconname ]-id.
+*
+*      CATCH cx_sy_itab_line_not_found.
+*        CLEAR ls_calc_field-icon.
+*    ENDTRY.
+*
+*    es_calculated_fields = ls_calc_field.
+*  ENDMETHOD.
+*  METHOD if_salv_ida_calc_field_handler~get_requested_fields.
+*    IF line_exists( its_calc_field_name[ table_line = 'ICON' ] ).
+*      rts_db_field_name = VALUE #( ( CONV #( 'ICONNAME' ) ) ).
+*    ENDIF.
+*  ENDMETHOD.
+*  METHOD if_salv_ida_calc_field_handler~start_page.
+*  ENDMETHOD.
+*  METHOD if_salv_ida_calc_field_handler~end_page.
+*  ENDMETHOD.
+ENDCLASS.
